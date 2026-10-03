@@ -45,6 +45,14 @@ class Settings:
         default_factory=lambda: _env("ZOOWORK_MODEL", "litellm/claude-sonnet-5")
     )
     band_api_key: str = field(default_factory=lambda: _env("BAND_API_KEY"))
+    # Optional: reuse already-registered Band agents (their keys are shown only once at registration).
+    band_agent_creds: dict[str, dict[str, str]] = field(
+        default_factory=lambda: {
+            role: {"id": _env(f"BAND_{role.upper()}_AGENT_ID"), "api_key": _env(f"BAND_{role.upper()}_API_KEY")}
+            for role in ("capy", "shipco")
+            if _env(f"BAND_{role.upper()}_AGENT_ID") and _env(f"BAND_{role.upper()}_API_KEY")
+        }
+    )
     band_rest_url: str = field(default_factory=lambda: _env("BAND_REST_URL", "https://app.band.ai"))
     band_ws_url: str = field(
         default_factory=lambda: _env("BAND_WS_URL", "wss://app.band.ai/api/v1/socket/websocket")

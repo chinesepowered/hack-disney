@@ -19,6 +19,7 @@ For frontend development, run `npm run dev` in `frontend/` (port 5173, proxies t
 |---|---|---|
 | `ZOOWORK_API_KEY` | Inspector Capy runs as a ZooWork managed agent | A scripted inspector drives the same tools |
 | `BAND_API_KEY` (user key) | Real Band case rooms, ShipCo agent, merchant on Band | Case rooms run locally in the dashboard |
+| `BAND_CAPY_*`, `BAND_SHIPCO_*` (agent id + key) | Reuse the already-registered Inspector Capy and ShipCo agents | New agents are registered on first start |
 | `ELEVENLABS_API_KEY` | Demo video narration, music and sound effects | Video can be rendered `--silent` with captions |
 
 Optional settings: `ZOOWORK_MODEL` (default `litellm/claude-sonnet-5`), `CAPY_ZOOWORK` / `CAPY_BAND`

@@ -78,6 +78,8 @@ class BandLive:
         me = await self.as_user("GET", "/me")
         self.user = me.get("user", me)
         stored = json.loads(self.state_file.read_text()) if self.state_file.exists() else {}
+        for role, creds in self.settings.band_agent_creds.items():  # .env wins over local state
+            stored[role] = {**creds, "name": AGENTS[role][0]}
         existing = {a["name"]: a for a in await self.as_user("GET", "/me/agents")}
         for role, (name, description) in AGENTS.items():
             creds = stored.get(role)
@@ -85,6 +87,8 @@ class BandLive:
             if creds and current and current["id"] == creds["id"]:
                 self.agents[role] = creds
                 continue
+            if creds and role in self.settings.band_agent_creds:
+                log.warning("Band agent %s from .env was not found in your account; registering a new one", name)
             if current:  # ours by name, but its one-time key is lost: recreate it
                 await self.as_user("DELETE", f"/me/agents/{current['id']}")
             made = await self.as_user(

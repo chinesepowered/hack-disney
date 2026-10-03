@@ -268,9 +268,13 @@ class Rooms:
     async def merchant_reply(self, case_id: str, text: str, share: str | None = None,
                              *, from_band: bool = False) -> dict[str, Any]:
         case = self.cases.get(case_id)
+        # claim the pending question before any await, so Band's echo of this very
+        # message (delivered to Capy's runtime) is not taken as a second answer
+        waiting = self._merchant_waits.pop(case.id, None)
         shared: list[Exhibit] = []
-        wants_share = share or ("lab" in text.lower() or "report" in text.lower() or "attach" in text.lower())
-        if wants_share and case.id == "DSP-1045":
+        lowered = text.lower()
+        wants_share = share or any(w in lowered for w in ("lab", "report", "attach", "share", "yes", "here"))
+        if wants_share and case.id == "DSP-1045" and not lowered.startswith(("no", "we don")):
             f = self.world.merchant_files["stormshell_lab_report"]
             shared.append(self.vault.add(
                 case.id, "lab_report", kind="document", title=f["title"],
@@ -293,7 +297,6 @@ class Rooms:
             await self._band(self.band.post("merchant", room_id, text, ["capy"], attachment_ids))
 
         answer = {"text": text, "shared_exhibits": [e.for_agent() for e in shared]}
-        waiting = self._merchant_waits.pop(case.id, None)
         if waiting:
             attention_id, future = waiting
             case.attention = [

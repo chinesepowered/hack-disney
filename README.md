@@ -1,15 +1,17 @@
 # 🔍 Chargeback Capy
 
-**Chargeback Capy is an AI detective that wins back the money online merchants lose to chargebacks.**
-**The problem:** every chargeback costs a shop the sale, the goods and a fee, and the evidence to fight it is scattered across systems and companies with deadlines in days, so most small merchants never respond.
-**Our solution:** Inspector Capy, a ZooWork managed agent, investigates every dispute in parallel, gathers proof from partner agents and the merchant in Band case rooms, writes an evidence packet where every claim must cite a fingerprinted exhibit, and submits only after the merchant approves.
-In a live run it handled 5 disputes in about 90 seconds: 4 won ($1,842 recovered) and 1 honest refund where the shop was at fault. Merchants pay 20% of recovered dollars, nothing when Capy loses.
+- **What it does:** Chargeback Capy is an AI detective that wins back the money online merchants lose to chargebacks.
+- **The problem:** every chargeback costs a shop the sale, the goods and a fee, and the evidence to fight it is scattered across systems and companies with deadlines in days, so most small merchants never respond.
+- **Our solution:** Inspector Capy, a ZooWork managed agent, investigates every dispute in parallel, gathers proof from partner agents and the merchant in Band case rooms, writes an evidence packet where every claim must cite a fingerprinted exhibit, and submits only after the merchant approves.
+- **Results:** in a live run it handled 5 disputes in about 90 seconds: 4 won ($1,842 recovered) and 1 honest refund where the shop was at fault. Merchants pay 20% of recovered dollars, nothing when Capy loses.
 
-![Chargeback Capy dashboard during a live run](docs/dashboard.jpg)
+### ▶ [Watch the 3-minute demo on YouTube](https://www.youtube.com/watch?v=vCJSlZiHoYU)
 
-**Try it:** [`offline.html`](offline.html) (offline replay of a live run, opens in any browser) ·
-[`slide.html`](slide.html) (4-slide pitch) · [`docs/chargeback-capy-demo.mp4`](docs/chargeback-capy-demo.mp4) (3-min demo video) ·
-[`docs/SETUP.md`](docs/SETUP.md) (run it live)
+[![Chargeback Capy dashboard during a live run. Click to watch the demo video.](docs/dashboard.jpg)](https://www.youtube.com/watch?v=vCJSlZiHoYU)
+
+**Try it:** [`offline.html`](offline.html) (replay of a live run; download and open in any browser, no network needed) ·
+[`slide.html`](slide.html) (4-slide pitch) · [`docs/SETUP.md`](docs/SETUP.md) (run it live) ·
+[`docs/chargeback-capy-demo.mp4`](docs/chargeback-capy-demo.mp4) (offline copy of the video)
 
 ## Sponsor summary
 
@@ -17,7 +19,6 @@ In a live run it handled 5 disputes in about 90 seconds: 4 won ($1,842 recovered
 |---|---|---|
 | **ZooWork** | Runs Inspector Capy as a managed agent: one session per dispute in parallel, 13 custom tools, sandbox-built PDF via `artifact_publish`, `always_ask` approval before money moves, streamed trajectories | `backend/capy/zoo.py`, `tools.py`, `persona/` |
 | **Band** | Cross-company case rooms: Capy and the ShipCo Warehouse partner agent talk by @mention, the merchant answers attention items, every step lands in the room's audit trail | `backend/capy/band.py`, `rooms.py` |
-| **ElevenLabs** | Demo video: narrator voice, Inspector Capy's own voice, generated music bed and sound effects | `video/eleven.py`, `make_video.py` |
 
 ## Sponsor details
 
@@ -44,11 +45,6 @@ In a live run it handled 5 disputes in about 90 seconds: 4 won ($1,842 recovered
 - **The merchant is a human participant.** Capy's questions are Band *attention* items; the merchant answers in the
   Band app or the dashboard, and the answer is posted to Band as the merchant.
 - **Audit trail**: pins, strategy, vault checks, submissions and issuer rulings are all posted to the room.
-
-### ElevenLabs: the demo video
-- **Narration** with the Jessica voice; **Inspector Capy speaks** in George's British storyteller voice.
-- **Music bed** from the ElevenLabs Music API and **sound effects** (stamp, cash register, transitions) from the
-  sound-generation API, mixed over a screen recording of a real live sweep (`video/make_video.py`).
 
 ---
 The merchant, orders and disputes are fictional, and the card issuer is simulated so it rules in seconds instead of

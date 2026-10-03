@@ -16,7 +16,7 @@
 :root {
   --ink: #2b2118; --muted: #6a5643; --brown: #5b3a22; --line: #ecdfca;
   --teal: #2b8c83; --teal-soft: #e1f3f0; --zoo: #5a55d6; --zoo-soft: #ecebff;
-  --eleven: #2b2118; --yuzu: #ffc531; --green: #2f9958; --red: #c0473f;
+  --yuzu: #ffc531; --green: #2f9958; --red: #c0473f;
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; background: #1d1611; overflow: hidden; }
@@ -48,7 +48,6 @@ h2 { font-weight: 700; font-size: 82px; line-height: 1; letter-spacing: -.5px; }
 .chip i { width: 14px; height: 14px; border-radius: 50%; background: currentColor; }
 .chip.zoo { background: var(--zoo-soft); color: var(--zoo); }
 .chip.band { background: var(--teal-soft); color: #1f6660; }
-.chip.eleven { background: #efe9e1; color: var(--eleven); }
 .foot { position: absolute; left: 120px; bottom: 60px; font-size: 24px; font-weight: 800; color: #a08a72; letter-spacing: .5px; }
 
 /* 2 · problem */
@@ -74,10 +73,10 @@ h2 { font-weight: 700; font-size: 82px; line-height: 1; letter-spacing: -.5px; }
 .stat.win { background: #e3f5e8; border-color: #c5e8cf; color: var(--green); }
 
 /* 4 · why it wins */
-.sponsors { display: grid; grid-template-columns: 1.15fr 1.15fr 0.9fr; gap: 28px; margin-top: 44px; }
+.sponsors { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 44px; }
 .sp { border-radius: 30px; padding: 28px 34px; background: #fff; border: 3px solid var(--line); box-shadow: 0 26px 50px -26px rgba(60,30,10,.45); }
 .sp h3 { font-weight: 600; font-size: 38px; color: var(--ink); margin-bottom: 14px; }
-.sp ul { margin: 0; padding-left: 28px; font-size: 24px; line-height: 1.45; font-weight: 700; color: #4a3d31; }
+.sp ul { margin: 0; padding-left: 28px; font-size: 26px; line-height: 1.45; font-weight: 700; color: #4a3d31; }
 .sp.zoo { border-color: #c9c6f5; background: linear-gradient(180deg,#fff,#f4f3ff); }
 .sp.band { border-color: #b6e0da; background: linear-gradient(180deg,#fff,#effaf8); }
 .bottom { margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
@@ -112,7 +111,6 @@ h2 { font-weight: 700; font-size: 82px; line-height: 1; letter-spacing: -.5px; }
       <div class="chips">
         <span class="chip zoo"><i></i>ZooWork managed agents</span>
         <span class="chip band"><i></i>Band agent rooms</span>
-        <span class="chip eleven"><i></i>ElevenLabs voices</span>
       </div>
     </div>
     <div class="foot">AI COMMERCE HACKATHON · AGENTS FOR MERCHANTS</div>
@@ -158,7 +156,6 @@ h2 { font-weight: 700; font-size: 82px; line-height: 1; letter-spacing: -.5px; }
     <div class="sponsors">
       <div class="sp zoo"><h3>🧠 ZooWork</h3><ul><li>Managed agent runs the investigation loop</li><li>13 custom tools; credentials stay home</li><li>Sandbox writes and publishes the PDF</li><li><code>always_ask</code> approval gate</li><li>Won/lost outcomes label every trajectory</li></ul></div>
       <div class="sp band"><h3>💬 Band</h3><ul><li>One case room per dispute</li><li>Partner agents across companies, by @mention</li><li>Merchant answers attention items</li><li>Room goals and a full audit trail</li></ul></div>
-      <div class="sp"><h3>🎙 ElevenLabs</h3><ul><li>Narrated demo video</li><li>Inspector Capy's own British voice</li><li>Generated music and sound effects</li></ul></div>
     </div>
     <div class="bottom">
       <div class="box"><h3>💸 Business</h3>Pay-on-win pricing merchants already accept from chargeback services. Every dispute is a measurable win or loss.</div>

@@ -36,7 +36,7 @@ class ZooRunFailed(RuntimeError):
 
 
 def agent_resource(model: str) -> dict[str, Any]:
-    persona = [{"name": n, "content": (PACKAGE_ROOT / "persona" / n).read_text()} for n in PERSONA_FILES]
+    persona = [{"name": n, "content": (PACKAGE_ROOT / "persona" / n).read_text(encoding="utf-8")} for n in PERSONA_FILES]
     tools = [{**t, "timeoutMs": 1_800_000} for t in TOOL_DEFS]
     resource = {
         "name": "inspector-capy",

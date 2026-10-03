@@ -2,25 +2,24 @@
 
 ## Run it locally
 
-Prerequisites: Python 3.11+ with [uv](https://docs.astral.sh/uv/), Node 22+.
+Prerequisites: Python 3.11+ with [uv](https://docs.astral.sh/uv/), Node 22+ with [pnpm](https://pnpm.io/).
 
 ```bash
 cp .env.example .env            # add your keys (all optional, see below)
 
-cd frontend && npm install && npm run build && cd ..
+cd frontend && pnpm install && pnpm run build && cd ..
 cd backend && uv sync
 uv run uvicorn capy.server:app --port 8000
 # open http://localhost:8000 and click "Run dispute sweep"
 ```
 
-For frontend development, run `npm run dev` in `frontend/` (port 5173, proxies to the backend).
+For frontend development, run `pnpm dev` in `frontend/` (port 5173, proxies to the backend).
 
 | Key | What it enables | Without it |
 |---|---|---|
 | `ZOOWORK_API_KEY` | Inspector Capy runs as a ZooWork managed agent | A scripted inspector drives the same tools |
 | `BAND_API_KEY` (user key) | Real Band case rooms, ShipCo agent, merchant on Band | Case rooms run locally in the dashboard |
 | `BAND_CAPY_*`, `BAND_SHIPCO_*` (agent id + key) | Reuse the already-registered Inspector Capy and ShipCo agents | New agents are registered on first start |
-| `ELEVENLABS_API_KEY` | Demo video narration, music and sound effects | Video can be rendered `--silent` with captions |
 
 Optional settings: `ZOOWORK_MODEL` (default `litellm/claude-sonnet-5`), `CAPY_ZOOWORK` / `CAPY_BAND`
 (`auto` | `on` | `off`), `CAPY_PACE` (scripted-inspector speed), `CAPY_ISSUER_DELAY` (seconds).
@@ -44,18 +43,6 @@ Tests: `cd backend && uv run pytest`.
 7. **Close** on KPIs: $1,842 recovered, 100% win rate, Capy's fee only on wins. Open the Band app to show
    the real rooms.
 
-## Demo video
-
-`video/make_video.py` records the real dashboard during a live sweep on a virtual display, then mixes
-ElevenLabs narration (Jessica as narrator, George as Inspector Capy), ElevenLabs sound effects and an
-ElevenLabs music bed:
-
-```bash
-Xvfb :99 -screen 0 1920x1200x24 &
-cd video && DISPLAY=:99 uv run --project ../backend --with playwright python make_video.py
-# → video/out/chargeback-capy.mp4    (--brain scripted for an offline take, --silent without ElevenLabs)
-```
-
 ## Layout
 
 ```
@@ -63,7 +50,7 @@ backend/capy/      world, vault, processor, tools, Band rooms, ZooWork runner, s
 backend/capy/persona/   Inspector Capy's ZooWork persona docs (operating manual, identity, soul)
 backend/capy/assets/    exhibit artwork (SVG → PNG), fonts (OFL)
 frontend/src/      React dashboard: inbox, corkboard, Band room, agent trail, approvals, story cards
-video/             narration script and recorder
+video/             scripts that recorded the demo video (demo tooling, not part of the product)
 ```
 
 ## Offline demo (no network, no backend)
@@ -76,18 +63,18 @@ approve the packets: the replay pauses wherever the merchant acted, so you drive
 Rebuild it from a newer recorded run:
 
 ```bash
-cd frontend && npm run build:offline
+cd frontend && pnpm run build:offline
 cd ../backend && uv run python scripts/build_offline.py [RUN_ID]   # -> ../offline.html
 ```
 
 ## Pitch deck
 
 `slide.html` is a 4-slide deck (arrow keys or click; also prints to PDF). Edit `docs/slides/template.html`,
-then run `python3 docs/slides/build.py` to inline fonts and images.
+then run `uv run --no-project python docs/slides/build.py` to inline fonts and images (it reads the fonts from
+`frontend/node_modules`, so install the frontend dependencies first).
 
 ## Simulated pieces (by design)
 - The merchant, its orders and the five disputes are fictional (`backend/capy/world.py`).
 - The card processor/issuer is simulated: it rules in seconds using simplified per-reason-code evidence
   rules (`backend/capy/processor.py`). Real issuers take weeks.
 - ShipCo's agent runs in our process (same Band owner) with a deterministic evidence desk.
-

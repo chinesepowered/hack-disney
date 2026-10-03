@@ -8,6 +8,8 @@ __pycache__/
 .env
 
 # Generated
+backend/.state/
+backend/output/
 backend/runs/
 backend/artifacts/
 node_modules/

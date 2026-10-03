@@ -1,6 +1,6 @@
 """Inline fonts, art and the dashboard screenshot into ../../slide.html (works offline).
 
-    python3 docs/slides/build.py      # needs frontend/node_modules for the fonts
+    uv run --no-project python docs/slides/build.py   # needs frontend/node_modules for the fonts
 """
 
 from __future__ import annotations
@@ -18,12 +18,13 @@ def b64(path: Path) -> str:
 
 
 def capy_svg(size: int) -> str:
-    svg = (ROOT / "backend" / "capy" / "assets" / "art" / "inspector_capy.svg").read_text()
+    svg = (ROOT / "backend" / "capy" / "assets" / "art" / "inspector_capy.svg").read_text(encoding="utf-8")
     return re.sub(r'width="\d+" height="\d+"', f'width="{size}" height="{size}"', svg, count=1)
 
 
 def main() -> None:
-    html = (Path(__file__).parent / "template.html").read_text()
+    # explicit UTF-8: the template has emoji, and Windows defaults to cp1252
+    html = (Path(__file__).parent / "template.html").read_text(encoding="utf-8")
     values = {
         "FREDOKA_600": b64(FONTS / "fredoka/files/fredoka-latin-600-normal.woff2"),
         "FREDOKA_700": b64(FONTS / "fredoka/files/fredoka-latin-700-normal.woff2"),
@@ -39,7 +40,7 @@ def main() -> None:
     for key, value in values.items():
         html = html.replace("{{" + key + "}}", value)
     target = ROOT / "slide.html"
-    target.write_text(html)
+    target.write_text(html, encoding="utf-8", newline="\n")
     print(f"{target} {target.stat().st_size / 1e6:.2f} MB")
 
 

@@ -31,7 +31,7 @@ def pick_run(arg: str | None) -> Path:
     if arg:
         return RUNS_DIR / f"{arg}.jsonl"
     for path in sorted(RUNS_DIR.glob("*.jsonl"), reverse=True):
-        for line in path.read_text().splitlines()[:3]:
+        for line in path.read_text(encoding="utf-8").splitlines()[:3]:
             event = json.loads(line)["event"]
             if event.get("type") == "sweep" and event["sweep"].get("brain") == "zoowork":
                 return path
@@ -40,7 +40,7 @@ def pick_run(arg: str | None) -> Path:
 
 def main() -> None:
     run = pick_run(sys.argv[1] if len(sys.argv) > 1 else None)
-    raw = ARTIFACT_URL.sub("[artifact link]", run.read_text())
+    raw = ARTIFACT_URL.sub("[artifact link]", run.read_text(encoding="utf-8"))
     lines = [json.loads(line) for line in raw.splitlines() if line.strip()]
     assets = {}
     for ref in sorted(set(FILE_REF.findall(raw))):
@@ -51,17 +51,22 @@ def main() -> None:
         else:
             print("missing asset", ref)
     started = next((e["event"]["sweep"]["started_at"] for e in lines if e["event"].get("type") == "sweep"), None)
-    recorded_at = datetime.fromtimestamp(started).strftime("%b %-d, %Y") if started else run.stem
+    if started:
+        when = datetime.fromtimestamp(started)
+        recorded_at = f"{when:%b} {when.day}, {when:%Y}"  # portable: Windows strftime has no %-d
+    else:
+        recorded_at = run.stem
     payload = json.dumps({"run_id": run.stem, "recorded_at": recorded_at, "assets": assets, "events": lines},
                          separators=(",", ":")).replace("</", "<\\/")
-    html = TEMPLATE.read_text()
+    # explicit UTF-8: the bundle has non-ASCII text, and Windows defaults to cp1252
+    html = TEMPLATE.read_text(encoding="utf-8")
     tag = f'<script id="capy-replay" type="application/json">{payload}</script>'
     html = html.replace("</body>", f"{tag}\n</body>")
     html = html.replace("<title>Chargeback Capy</title>", "<title>Chargeback Capy · offline demo</title>")
     favicon = ROOT / "frontend" / "public" / "favicon.svg"
     icon = 'href="data:image/svg+xml;base64,' + base64.b64encode(favicon.read_bytes()).decode() + '"'
     html = html.replace('href="./favicon.svg"', icon).replace('href="/favicon.svg"', icon)
-    TARGET.write_text(html)
+    TARGET.write_text(html, encoding="utf-8", newline="\n")
     print(f"{TARGET} from {run.stem}: {len(lines)} events, {len(assets)} images, {TARGET.stat().st_size / 1e6:.1f} MB")
 
 

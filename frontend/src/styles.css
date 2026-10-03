@@ -2085,3 +2085,13 @@ button {
   font-weight: 800;
   color: var(--brown-dark);
 }
+
+.replay-tag {
+  margin-left: 8px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--amber-soft);
+  color: #8a5a00;
+  font-weight: 800;
+  font-size: 11px;
+}

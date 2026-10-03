@@ -67,6 +67,12 @@ cd frontend && pnpm run build:offline
 cd ../backend && uv run python scripts/build_offline.py [RUN_ID]   # -> ../offline.html
 ```
 
+After frontend changes on a machine without the recorded run, `uv run python scripts/build_offline.py --refresh`
+rebuilds `offline.html` with the current frontend and keeps the replay already embedded in it.
+
+The dashboard adapts to the window: full layout at 1920x1080 and above, compact density on laptop screens,
+stacked panels below 1180px wide, and a phone layout below 760px (styles in `frontend/src/responsive.css`).
+
 ## Pitch deck
 
 `slide.html` is a 4-slide deck (arrow keys or click; also prints to PDF). Edit `docs/slides/template.html`,

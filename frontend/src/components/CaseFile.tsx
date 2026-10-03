@@ -1,10 +1,13 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { useState } from 'react'
+import { useLayoutEffect, useState } from 'react'
 import type { CaseFile, Pin } from '../types'
 import { countdown, money, reasonColor, useNow } from '../util'
 import { InspectorCapy, type Mood } from './Capys'
 
-const SLOTS = [
+type Slot = { x: number; y: number; rot: number }
+
+// Where notes go, as percentages of the board (x, y = the note's center at full size).
+const SLOTS: Slot[] = [
   { x: 19, y: 24, rot: -4 },
   { x: 81, y: 24, rot: 3 },
   { x: 82, y: 73, rot: -3 },
@@ -12,6 +15,13 @@ const SLOTS = [
   { x: 50, y: 15, rot: -2 },
   { x: 36, y: 70, rot: 3 },
 ]
+
+// The corkboard is designed for a 1000x620 board; on smaller boards its contents scale down
+// (never below MIN_SCALE) via the --k variable used in responsive.css.
+const BOARD_W = 1000
+const BOARD_H = 620
+const MIN_SCALE = 0.62
+const COMPACT_HEIGHT = 440 // shorter boards trim each note (see .board.compact in responsive.css)
 
 const QUOTES: Record<string, string> = {
   product_not_received: 'It never arrived.',
@@ -32,6 +42,48 @@ const KIND_ICON: Record<string, string> = {
   document: '🧪',
   subscription: '🔁',
   product: '🏷️',
+}
+
+const clamp = (lo: number, v: number, hi: number) => Math.max(lo, Math.min(v, hi))
+
+/** An element's size, kept current with a ResizeObserver. Pass the returned setter as its ref. */
+function useElementSize() {
+  const [el, setEl] = useState<HTMLDivElement | null>(null)
+  const [size, setSize] = useState({ w: 0, h: 0 })
+  useLayoutEffect(() => {
+    if (!el) return
+    const update = () => setSize({ w: el.clientWidth, h: el.clientHeight })
+    update()
+    const observer = new ResizeObserver(update)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [el])
+  return [setEl, size] as const
+}
+
+/** Worst-case note height: its text is line-clamped in responsive.css and has minimum sizes. */
+function noteHeight(width: number, k: number, photo: boolean, compact: boolean) {
+  const sourceLine = Math.max(9.5, 10.5 * k) * 1.35
+  const title = 2 * 1.15 * Math.max(11.5, 14 * k) + 7
+  const handwriting = (compact ? 2 : 3) * Math.max(15, 19 * k) * 1.05 + 7
+  if (photo) return 21 * k + (width - 18 * k) * (compact ? 0.625 : 0.75) + 7 + sourceLine + title + handwriting
+  const summary = compact ? 0 : 3 * 1.35 * Math.max(11, 12.5 * k)
+  return 22 * k + sourceLine + title + summary + handwriting
+}
+
+interface Placement {
+  x: number // horizontal center, and where the pin is
+  top: number // top edge, where the pin and the red string meet the note
+  width: number
+}
+
+/** A note's slot on a w x h board, pulled inward so the whole note stays on the board. */
+function place(slot: Slot, photo: boolean, w: number, h: number, k: number, compact: boolean): Placement {
+  const width = (photo && !compact ? 256 : 236) * k
+  const height = noteHeight(width, k, photo, compact)
+  const x = clamp(width / 2 + 10, (slot.x / 100) * w, w - width / 2 - 10)
+  const top = clamp(14, (slot.y / 100) * h - height / 2, h - height - 10)
+  return { x, top, width }
 }
 
 function moodFor(c: CaseFile): Mood {
@@ -57,17 +109,23 @@ function bubbleFor(c: CaseFile, sweeping: boolean) {
   if (c.status === 'won') return `We won! ${money(c.amount, true)} is back 🍊`
   if (c.status === 'lost') return 'The issuer sided with the cardholder.'
   if (c.status === 'accepted') return 'Refunded. Fair is fair. I flagged the bug 🍊'
-  if (c.status === 'new') return sweeping ? 'Queued, I’ll get to this one soon.' : 'Ready when you are. Hit “Run dispute sweep”.'
+  if (c.status === 'new') return sweeping ? 'Queued, I’ll get to this one soon.' : 'Ready when you are. Start a sweep up top.'
   return c.activity || 'On it…'
 }
 
-function Note({ pin, slot, index }: { pin: Pin; slot: (typeof SLOTS)[number]; index: number }) {
+function Note({ pin, slot, placement, index }: { pin: Pin; slot: Slot; placement: Placement; index: number }) {
   const ex = pin.exhibit
   const photo = !!ex.image_url
   return (
     <div
       className="note-anchor"
-      style={{ left: `${slot.x}%`, top: `${slot.y}%`, zIndex: 4 + index, ['--rot' as string]: `${slot.rot}deg` }}
+      style={{
+        left: placement.x,
+        top: placement.top,
+        zIndex: 4 + index,
+        ['--rot' as string]: `${slot.rot}deg`,
+        ['--nw' as string]: `${placement.width}px`,
+      }}
     >
       <motion.div
         className={`note kind-${ex.kind} ${photo ? 'photo' : ''}`}
@@ -94,11 +152,17 @@ function Note({ pin, slot, index }: { pin: Pin; slot: (typeof SLOTS)[number]; in
 export function CaseFileView({ c, sweeping, stamp }: { c: CaseFile | null; sweeping: boolean; stamp: React.ReactNode }) {
   const now = useNow(30_000)
   const [page, setPage] = useState<string | null>(null)
+  const [boardRef, board] = useElementSize()
   if (!c) return <section className="panel" />
   const dl = countdown(c.respond_by, now)
   const pins = c.pins.slice(0, SLOTS.length)
   const pageCount = c.packet?.page_count ?? 0
   const argumentPages = c.packet?.argument_pages ?? 1
+  const w = board.w || BOARD_W
+  const h = board.h || BOARD_H
+  const k = clamp(MIN_SCALE, Math.min(w / BOARD_W, h / BOARD_H), 1)
+  const compact = h < COMPACT_HEIGHT
+  const placements = pins.map((p, i) => place(SLOTS[i], !!p.exhibit.image_url, w, h, k, compact))
   return (
     <section className="panel casefile">
       <div className="case-head">
@@ -145,20 +209,19 @@ export function CaseFileView({ c, sweeping, stamp }: { c: CaseFile | null; sweep
         {c.rationale && <span className="rationale">🧭 {c.rationale}</span>}
       </div>
 
-      <div className="board-wrap">
-        <div className="board">
-          <svg className="strings" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <div className="board-wrap" style={{ ['--k' as string]: k }}>
+        <div className={`board ${compact ? 'compact' : ''}`} ref={boardRef}>
+          <svg className="strings" viewBox={`0 0 ${w} ${h}`}>
             <AnimatePresence>
               {pins.map((p, i) => (
                 <motion.line
                   key={p.exhibit.id}
-                  x1={50}
-                  y1={50}
-                  x2={SLOTS[i].x}
-                  y2={SLOTS[i].y - 9}
+                  x1={w / 2}
+                  y1={h / 2}
+                  x2={placements[i].x}
+                  y2={placements[i].top}
                   stroke="#c0392b"
                   strokeWidth={2.6}
-                  vectorEffect="non-scaling-stroke"
                   strokeLinecap="round"
                   initial={{ pathLength: 0, opacity: 0 }}
                   animate={{ pathLength: 1, opacity: 0.9 }}
@@ -178,7 +241,7 @@ export function CaseFileView({ c, sweeping, stamp }: { c: CaseFile | null; sweep
           </div>
 
           {pins.map((p, i) => (
-            <Note key={p.exhibit.id} pin={p} slot={SLOTS[i]} index={i} />
+            <Note key={p.exhibit.id} pin={p} slot={SLOTS[i]} placement={placements[i]} index={i} />
           ))}
 
           {pins.length === 0 && c.status !== 'accepted' && (
@@ -241,7 +304,7 @@ export function CaseFileView({ c, sweeping, stamp }: { c: CaseFile | null; sweep
       <AnimatePresence>
         {page && (
           <motion.div className="overlay" onClick={() => setPage(null)} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <img src={page} alt="Packet page" style={{ maxHeight: '90vh', borderRadius: 8, boxShadow: '0 30px 80px rgba(0,0,0,.5)' }} />
+            <img src={page} alt="Packet page" style={{ maxHeight: '90vh', maxWidth: '94vw', borderRadius: 8, boxShadow: '0 30px 80px rgba(0,0,0,.5)' }} />
           </motion.div>
         )}
       </AnimatePresence>

@@ -1,10 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import type { Modes, Stats, Sweep } from '../types'
 import { api, OFFLINE, REPLAY_INFO } from '../store'
 import { money, useAnimatedNumber } from '../util'
 import { InspectorCapy } from './Capys'
 
-function Kpi({ label, value, tone, format = money }: { label: string; value: number | null; tone?: string; format?: (n: number) => string }) {
+function Kpi({ label, value, tone, format = money }: { label: ReactNode; value: number | null; tone?: string; format?: (n: number) => string }) {
   const animated = useAnimatedNumber(value ?? 0)
   return (
     <div className={`kpi ${tone ?? ''}`}>
@@ -36,6 +36,8 @@ export function Header({ stats, modes, sweep }: { stats: Stats | null; modes: Mo
   }
 
   const winRate = stats?.win_rate == null ? null : stats.win_rate * 100
+  // Spans with these classes collapse on smaller screens (see responsive.css):
+  // brand-sub, kpi-extra, pill-detail, run-long.
   return (
     <header className="header">
       <div className="brand">
@@ -48,8 +50,11 @@ export function Header({ stats, modes, sweep }: { stats: Stats | null; modes: Mo
         <div>
           <h1>Chargeback Capy</h1>
           <p>
-            Capybara Investigations · defending Hot Spring Supply Co.
-            {OFFLINE && <span className="replay-tag">▶ offline replay of a live run · {REPLAY_INFO?.recorded_at}</span>}
+            {OFFLINE ? (
+              <span className="replay-tag">▶ offline replay of a live run · {REPLAY_INFO?.recorded_at}</span>
+            ) : (
+              <span className="brand-sub">Capybara Investigations · defending Hot Spring Supply Co.</span>
+            )}
           </p>
         </div>
       </div>
@@ -58,28 +63,39 @@ export function Header({ stats, modes, sweep }: { stats: Stats | null; modes: Mo
         <Kpi label="At risk" value={stats?.at_risk ?? null} tone="risk" />
         <Kpi label="Recovered" value={stats?.recovered ?? null} tone="good" />
         <Kpi label="Win rate" value={winRate} format={(n) => `${Math.round(n)}%`} />
-        <Kpi label={`Capy's fee (${Math.round((stats?.fee_rate ?? 0.2) * 100)}% of wins)`} value={stats?.fee ?? null} />
+        <Kpi
+          label={
+            <>
+              Capy's fee<span className="kpi-extra"> ({Math.round((stats?.fee_rate ?? 0.2) * 100)}% of wins)</span>
+            </>
+          }
+          value={stats?.fee ?? null}
+        />
       </div>
 
       <div className="sponsors">
         <span className={`pill ${modes?.zoowork === 'live' ? 'pill-zoo live' : 'pill-off'}`}>
           <span className="dot" />
-          ZooWork managed agent {modes?.zoowork === 'live' ? `· ${modes.model?.replace('litellm/', '')}` : '· offline'}
+          ZooWork managed agent
+          <span className="pill-detail">{modes?.zoowork === 'live' ? ` · ${modes.model?.replace('litellm/', '')}` : ' · offline'}</span>
         </span>
         <span className={`pill ${modes?.band === 'live' ? 'pill-band live' : 'pill-off'}`}>
           <span className="dot" />
-          Band case rooms {modes?.band === 'live' ? `· @${modes.band_user}` : '· offline'}
+          Band case rooms
+          <span className="pill-detail">{modes?.band === 'live' ? ` · @${modes.band_user}` : ' · offline'}</span>
         </span>
       </div>
 
-      <div style={{ position: 'relative', display: 'flex', gap: 8, alignItems: 'center' }}>
+      <div className="header-actions">
         <button className="run-btn" onClick={start} disabled={running}>
           {running ? (
             <>
-              <span className="spinner" /> Sweeping disputes…
+              <span className="spinner" /> Sweeping<span className="run-long"> disputes</span>…
             </>
           ) : (
-            <>🔍 Run dispute sweep</>
+            <>
+              🔍 Run <span className="run-long">dispute </span>sweep
+            </>
           )}
         </button>
         <button className="icon-btn" aria-label="Sweep settings" onClick={() => setMenu((m) => !m)}>

@@ -1,15 +1,20 @@
 # 🔍 Chargeback Capy
 
 **Chargeback Capy is an AI detective that wins back the money online merchants lose to chargebacks.**
+
 **The problem:** every chargeback costs a shop the sale, the goods and a fee, and the evidence to fight it is scattered across systems and companies with deadlines in days, so most small merchants never respond.
+
 **Our solution:** Inspector Capy, a ZooWork managed agent, investigates every dispute in parallel, gathers proof from partner agents and the merchant in Band case rooms, writes an evidence packet where every claim must cite a fingerprinted exhibit, and submits only after the merchant approves.
+
 In a live run it handled 5 disputes in about 90 seconds: 4 won ($1,842 recovered) and 1 honest refund where the shop was at fault. Merchants pay 20% of recovered dollars, nothing when Capy loses.
 
-![Chargeback Capy dashboard during a live run](docs/dashboard.jpg)
+### ▶ [Watch the 3-minute demo on YouTube](https://www.youtube.com/watch?v=vCJSlZiHoYU)
 
-**Try it:** [`offline.html`](offline.html) (offline replay of a live run, opens in any browser) ·
-[`slide.html`](slide.html) (4-slide pitch) · [`docs/chargeback-capy-demo.mp4`](docs/chargeback-capy-demo.mp4) (3-min demo video) ·
-[`docs/SETUP.md`](docs/SETUP.md) (run it live)
+[![Chargeback Capy dashboard during a live run. Click to watch the demo video.](docs/dashboard.jpg)](https://www.youtube.com/watch?v=vCJSlZiHoYU)
+
+**Try it:** [`offline.html`](offline.html) (replay of a live run; download and open in any browser, no network needed) ·
+[`slide.html`](slide.html) (4-slide pitch) · [`docs/SETUP.md`](docs/SETUP.md) (run it live) ·
+[`docs/chargeback-capy-demo.mp4`](docs/chargeback-capy-demo.mp4) (offline copy of the video)
 
 ## Sponsor summary
 

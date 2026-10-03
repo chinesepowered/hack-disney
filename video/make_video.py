@@ -234,16 +234,18 @@ def band_items(s: dict[str, Any], case_id: str) -> list[dict[str, Any]]:
 
 
 async def approve_remaining(d: Director, timeout: float = 240) -> None:
-    """Approve whatever reaches the gate next, until every case has been submitted or decided."""
+    """Approve whatever reaches the gate next, until no case is left waiting for the merchant."""
     deadline = time.monotonic() + timeout
     done = {"submitted", "won", "lost", "accepted"}
+    approved: set[str] = set()  # approved here; the agent may take a few seconds to submit
     while time.monotonic() < deadline:
         s = await d.state()
-        if all(c["status"] in done for c in s["cases"].values()):
+        pending = [a["case_id"] for a in s["approvals"] if a["case_id"] not in approved]
+        if not pending and all(c["status"] in done or c["id"] in approved for c in s["cases"].values()):
             return
-        pending = [a["case_id"] for a in s["approvals"]]
         if pending:
-            await d.approve(pending[0], linger=0.9)
+            if await d.approve(pending[0], linger=0.9):
+                approved.add(pending[0])
             await asyncio.sleep(0.4)
         else:
             await asyncio.sleep(0.5)

@@ -277,11 +277,14 @@ async def storyboard(d: Director, brain: str) -> None:
     await d.click(".run-btn")
     await d.say("capy_go", caption=False)
 
-    # whole dashboard while all five sessions spin up, then into the agent trail
+    # whole dashboard while all five sessions spin up, then into the agent trail once it has tool calls
     narration = asyncio.create_task(d.say("zoowork"))
     await d.until("zoowork", "reads", lead=0.9)
+    await d.wait_for("trail", lambda s: sum(x["kind"] == "tool" for x in zoo_steps(s, "DSP-1042")) >= 3, 12)
     await d.focus("zoo", 1.9)
+    zoomed = time.monotonic()
     await narration
+    await asyncio.sleep(max(0.0, 3.0 - (time.monotonic() - zoomed)))
     await d.focus(None)
 
     await d.wait_for("ShipCo reply", lambda s: any(m["sender"] == "shipco" for m in band_items(s, "DSP-1042")), 180)
@@ -325,7 +328,7 @@ async def storyboard(d: Director, brain: str) -> None:
         await asyncio.sleep(0.4)
         await d.js("window.__capy.modals(false)")
         await d.wait_for("DSP-1044 accepted", lambda s: s["cases"]["DSP-1044"]["status"] == "accepted", 30)
-        await asyncio.sleep(1.6)  # let the ACCEPTED stamp land
+        await asyncio.sleep(1.3)  # let the ACCEPTED stamp land
 
     # approve the delivery-photo case on camera, then wait for the issuer
     if await d.wait_for("approval DSP-1042", lambda s: any(a["case_id"] == "DSP-1042" for a in s["approvals"]), 300):
@@ -359,11 +362,13 @@ async def storyboard(d: Director, brain: str) -> None:
     await approve_remaining(d)
     await narration
     await d.js("window.__capy.follow(true)")
+    await asyncio.sleep(0.3)
+    await d.say("capy_rulings", caption=False)
     await d.wait_for("all decided", lambda s: all(c["status"] in ("won", "lost", "accepted") for c in s["cases"].values()), 90)
-    await asyncio.sleep(2.4)  # the last stamp and its confetti
+    await asyncio.sleep(1.2)  # the last stamp lands
     await d.js("window.__capy.follow(false)")
     await d.focus("brand,kpis", 1.7, "top")
-    await asyncio.sleep(0.8)
+    await asyncio.sleep(0.5)
     await d.say("results")
     await asyncio.sleep(0.4)
     await d.focus(None)

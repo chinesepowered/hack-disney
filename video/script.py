@@ -50,6 +50,7 @@ LINES = {
     ),
     "capy_won": ("capy", "Case closed."),
     "rest": ("narrator", "The other packets get the same review: one look, one click each."),
+    "capy_rulings": ("capy", "Elementary. The evidence speaks for itself."),
     "results": (
         "narrator",
         "The issuer rules for us. Four disputes won, one honest refund, and eighteen hundred and forty-two dollars "

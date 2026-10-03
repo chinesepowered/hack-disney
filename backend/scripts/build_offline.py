@@ -1,6 +1,6 @@
 """Bundle a recorded live sweep into one self-contained HTML file (no backend, no network).
 
-    cd frontend && npm run build:offline
+    cd frontend && pnpm run build:offline
     cd ../backend && uv run python scripts/build_offline.py [RUN_ID]   # -> ../offline.html
 
 Without RUN_ID the newest ZooWork-brained run in backend/runs is used. Images the run

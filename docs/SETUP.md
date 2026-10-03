@@ -2,18 +2,18 @@
 
 ## Run it locally
 
-Prerequisites: Python 3.11+ with [uv](https://docs.astral.sh/uv/), Node 22+.
+Prerequisites: Python 3.11+ with [uv](https://docs.astral.sh/uv/), Node 22+ with [pnpm](https://pnpm.io/).
 
 ```bash
 cp .env.example .env            # add your keys (all optional, see below)
 
-cd frontend && npm install && npm run build && cd ..
+cd frontend && pnpm install && pnpm run build && cd ..
 cd backend && uv sync
 uv run uvicorn capy.server:app --port 8000
 # open http://localhost:8000 and click "Run dispute sweep"
 ```
 
-For frontend development, run `npm run dev` in `frontend/` (port 5173, proxies to the backend).
+For frontend development, run `pnpm dev` in `frontend/` (port 5173, proxies to the backend).
 
 | Key | What it enables | Without it |
 |---|---|---|
@@ -63,7 +63,7 @@ approve the packets: the replay pauses wherever the merchant acted, so you drive
 Rebuild it from a newer recorded run:
 
 ```bash
-cd frontend && npm run build:offline
+cd frontend && pnpm run build:offline
 cd ../backend && uv run python scripts/build_offline.py [RUN_ID]   # -> ../offline.html
 ```
 

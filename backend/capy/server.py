@@ -71,6 +71,14 @@ async def sweep(req: SweepRequest) -> dict[str, Any]:
         raise HTTPException(409, str(err)) from err
 
 
+@app.post("/api/reset")
+async def reset() -> dict[str, Any]:
+    try:
+        return capy.reset()
+    except RuntimeError as err:
+        raise HTTPException(409, str(err)) from err
+
+
 @app.post("/api/approvals/{approval_id}")
 async def approve(approval_id: str, body: Decision) -> dict[str, Any]:
     if body.decision not in {"approve", "deny"}:

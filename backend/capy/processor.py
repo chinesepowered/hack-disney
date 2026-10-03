@@ -86,6 +86,7 @@ class Processor:
         self.bus = bus
         self.issuer_delay = issuer_delay
         self._tasks: set[asyncio.Task[None]] = set()
+        self.on_decision: Any = None  # async (case_id, decision) -> None
 
     def requirements(self, reason: str) -> list[str]:
         return REQUIREMENTS.get(reason, [])
@@ -155,6 +156,8 @@ class Processor:
         self.cases.update(case_id, status=status, decision=decision,
                           activity="Funds returned to merchant" if won else "Issuer sided with cardholder")
         self.bus.publish("decision", case_id=case_id, **decision)
+        if self.on_decision:
+            await self.on_decision(case_id, decision)
 
     def _evaluate(self, case_id: str, reason: str, cited: list[Exhibit]) -> tuple[bool, list[str]]:
         keys = {ex.key for ex in cited}

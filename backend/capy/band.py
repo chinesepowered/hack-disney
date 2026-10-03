@@ -54,6 +54,7 @@ class BandLive:
         self.handlers: dict[str, MessageHandler] = {}
         self._runtimes: list[Any] = []
         self.state_file = STATE_DIR / "band_agents.json"
+        self.features: dict[str, bool] = {}
 
     # ---- HTTP -------------------------------------------------------------------
 
@@ -96,6 +97,16 @@ class BandLive:
         self.state_file.chmod(0o600)
         for role, creds in self.agents.items():
             self.agent_http[role] = httpx.AsyncClient(timeout=30, headers={"X-API-Key": creds["api_key"]})
+        me_agent = await self.as_agent("capy", "GET", "/agent/me")
+        self.features = me_agent.get("feature_flags") or {}
+
+    @property
+    def can_upload(self) -> bool:
+        return bool(self.features.get("ff_file_transfer"))
+
+    @property
+    def has_tasks(self) -> bool:
+        return bool(self.features.get("ff_room_tasks"))
 
     async def start(self, handlers: dict[str, MessageHandler]) -> None:
         """Provision agents and connect them to Band's WebSocket."""

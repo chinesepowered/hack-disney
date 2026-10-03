@@ -157,13 +157,27 @@ class Rooms:
                 ))
         self.cases.update(case.id, room=room)
         self.feed(case.id, "system", f"Case room opened{' on Band' if room['id'] else ''}: {title}", kind="system")
+        await self.say(case.id, f"🔍 Opening {case.id}: {case.network_code} '{case.reason_label}' on {case.item}, "
+                       f"${case.amount:,.2f}. Cardholder says: {case.claim} Respond by {_date(case.respond_by)}.",
+                       kind="opening")
+
+    async def announce_decision(self, case_id: str, decision: dict[str, Any]) -> None:
+        amount = f"${decision['amount']:,.2f}"
+        if decision["status"] == "won":
+            text = f"🏆 Won {case_id}! The issuer returned {amount}. " + " ".join(decision["reasons"])
+        elif decision["status"] == "lost":
+            text = f"😔 Lost {case_id} ({amount}). " + " ".join(decision["reasons"])
+        else:
+            return
+        await self.say(case_id, text, kind="decision")
 
     async def say(self, case_id: str, text: str, mention: list[str] | None = None,
                   kind: str = "message", **extra: Any) -> None:
-        self.feed(case_id, "capy", text, kind=kind, mentions=mention or [], **extra)
+        mention = mention or ["merchant"]  # Band routes every message to someone; status goes to the merchant
+        self.feed(case_id, "capy", text, kind=kind, mentions=mention, **extra)
         room_id = self._room_id(case_id)
         if self.band and room_id:
-            await self._band(self.band.post("capy", room_id, text, mention or []))
+            await self._band(self.band.post("capy", room_id, text, mention))
 
     def _room_id(self, case_id: str) -> str | None:
         room = self.cases.get(case_id).room
@@ -214,12 +228,16 @@ class Rooms:
             return
         reply = self.shipco.answer(case_id)
         attachment_ids = []
+        text = reply.text
         if reply.photo and self.band:
-            uploaded = await self._band(self.band.upload("shipco", room_id, reply.photo))
-            if uploaded:
-                attachment_ids.append(uploaded["id"])
+            if self.band.can_upload:
+                uploaded = await self._band(self.band.upload("shipco", room_id, reply.photo))
+                if uploaded:
+                    attachment_ids.append(uploaded["id"])
+            else:
+                text += f" (Driver photo {reply.photo.stem} sent to Inspector Capy's evidence vault.)"
         if self.band:
-            await self._band(self.band.post("shipco", room_id, reply.text, ["capy"], attachment_ids))
+            await self._band(self.band.post("shipco", room_id, text, ["capy"], attachment_ids))
         self._feed_partner(case_id, reply)
         future = self._partner_waits.get(room_id)
         if future and not future.done():
@@ -268,7 +286,7 @@ class Rooms:
             attachment_ids = []
             for ex in shared:
                 path = self.vault.image_path(ex)
-                if path:
+                if path and self.band.can_upload:
                     up = await self._band(self.band.upload("capy", room_id, path))
                     if up:
                         attachment_ids.append(up["id"])

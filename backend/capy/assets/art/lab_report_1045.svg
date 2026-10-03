@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="960" viewBox="0 0 720 960">
+  <rect width="720" height="960" fill="#fdfcf8"/>
+  <rect x="0" y="0" width="720" height="110" fill="#23527c"/>
+  <circle cx="70" cy="55" r="32" fill="#ffffff"/><path d="M70 30 C55 55 55 70 70 80 C85 70 85 55 70 30 Z" fill="#23527c"/>
+  <text x="120" y="52" font-family="Helvetica" font-weight="bold" font-size="28" fill="#ffffff">Cascade Textile Labs</text>
+  <text x="120" y="80" font-family="Helvetica" font-size="16" fill="#cfe0f0">Accredited textile performance testing</text>
+  <text x="50" y="165" font-family="Helvetica" font-weight="bold" font-size="24" fill="#1e2a36">TEST REPORT  CTL-24-0912</text>
+  <text x="50" y="200" font-family="Helvetica" font-size="17" fill="#3d4a57">Method: ISO 811 hydrostatic head (water penetration)</text>
+  <text x="50" y="228" font-family="Helvetica" font-size="17" fill="#3d4a57">Sample: StormShell Rain Jacket shell fabric, batch SS-24</text>
+  <!-- client + issue date stamped at runtime -->
+  <rect x="50" y="290" width="620" height="44" fill="#e6eef6"/>
+  <text x="70" y="319" font-family="Helvetica" font-weight="bold" font-size="17" fill="#1e2a36">Specimen</text>
+  <text x="300" y="319" font-family="Helvetica" font-weight="bold" font-size="17" fill="#1e2a36">Water column (mm)</text>
+  <text x="540" y="319" font-family="Helvetica" font-weight="bold" font-size="17" fill="#1e2a36">Result</text>
+  <g font-family="Helvetica" font-size="17" fill="#2c3946">
+    <text x="70" y="368">SS-24-1</text><text x="300" y="368">10,350</text><text x="540" y="368">PASS</text>
+    <text x="70" y="408">SS-24-2</text><text x="300" y="408">10,400</text><text x="540" y="408">PASS</text>
+    <text x="70" y="448">SS-24-3</text><text x="300" y="448">10,480</text><text x="540" y="448">PASS</text>
+  </g>
+  <path d="M50 470 H670" stroke="#c5d3e0" stroke-width="2"/>
+  <text x="50" y="512" font-family="Helvetica" font-weight="bold" font-size="20" fill="#1e2a36">Conclusion: meets the 10,000 mm waterproof rating.</text>
+  <text x="50" y="548" font-family="Helvetica" font-size="16" fill="#3d4a57">Median 10,400 mm. Seams taped and tested separately (pass).</text>
+  <text x="50" y="576" font-family="Helvetica" font-size="16" fill="#3d4a57">Note: water repellency (DWR) declines with wear and is restored</text>
+  <text x="50" y="600" font-family="Helvetica" font-size="16" fill="#3d4a57">by low-heat tumble drying, as stated in the care instructions.</text>
+  <path d="M60 760 C90 720 120 790 150 740 C170 710 200 780 240 735" stroke="#23527c" stroke-width="3" fill="none"/>
+  <text x="60" y="800" font-family="Helvetica" font-size="15" fill="#3d4a57">Dr. R. Okafor, Laboratory Director</text>
+  <g transform="translate(540 760) rotate(-12)">
+    <circle r="70" fill="none" stroke="#b33a3a" stroke-width="5"/><circle r="58" fill="none" stroke="#b33a3a" stroke-width="2"/>
+    <text y="-6" font-family="Helvetica" font-weight="bold" font-size="22" fill="#b33a3a" text-anchor="middle">PASS</text>
+    <text y="20" font-family="Helvetica" font-size="12" fill="#b33a3a" text-anchor="middle">ISO 811</text>
+  </g>
+</svg>

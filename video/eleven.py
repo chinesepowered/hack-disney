@@ -80,3 +80,22 @@ def music(prompt: str, seconds: float, out_dir: Path) -> Path:
     response.raise_for_status()
     target.write_bytes(response.content)
     return target
+
+
+def align(audio: Path, text: str) -> list[dict]:
+    """Word timings for a narration clip (ElevenLabs forced alignment), cached next to the clip."""
+    target = audio.with_suffix(".words.json")
+    if target.exists():
+        return json.loads(target.read_text())
+    with audio.open("rb") as fh:
+        response = httpx.post(
+            f"{API}/forced-alignment",
+            headers={"xi-api-key": _key()},
+            files={"file": (audio.name, fh, "audio/mpeg")},
+            data={"text": text},
+            timeout=120,
+        )
+    response.raise_for_status()
+    words = [{"text": w["text"], "start": w["start"], "end": w["end"]} for w in response.json()["words"] if w["text"].strip()]
+    target.write_text(json.dumps(words))
+    return words

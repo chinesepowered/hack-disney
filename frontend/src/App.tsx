@@ -129,26 +129,36 @@ export default function App() {
       caption: (text) => setCaption(text),
       focus: (target, scale = 1.6, mode = 'fit') => {
         if (!target) return setFocus(null)
-        const el = document.querySelector(`[data-focus="${target}"]`) as HTMLElement | null
-        if (!el) return
-        // measure without the current zoom, then center the element and fit it on screen
+        // "a,b" frames the union of several regions
+        const els = target.split(',').map((t) => document.querySelector(`[data-focus="${t.trim()}"]`) as HTMLElement | null)
+        if (!els.length || els.some((e) => !e)) return
+        // measure without the current zoom, then center the region and fit it on screen
         const app = document.querySelector('.app') as HTMLElement
         const prev = app.style.transform
         app.style.transition = 'none'
         app.style.transform = 'none'
-        const r = el.getBoundingClientRect()
+        const rects = els.map((e) => e!.getBoundingClientRect())
+        const left = Math.min(...rects.map((b) => b.left))
+        const top = Math.min(...rects.map((b) => b.top))
+        const r = {
+          left,
+          top,
+          width: Math.max(...rects.map((b) => b.right)) - left,
+          height: Math.max(...rects.map((b) => b.bottom)) - top,
+        }
         app.style.transform = prev
         void app.offsetWidth
         app.style.transition = ''
         const W = window.innerWidth
         const H = window.innerHeight
-        if (mode === 'top') {
-          const s = Math.min(scale, (0.92 * W) / r.width)
-          setFocus({ x: W / 2 - s * (r.left + r.width / 2), y: 40 - s * r.top, scale: s })
-          return
-        }
-        const s = Math.min(scale, (0.92 * W) / r.width, (0.86 * H) / r.height)
-        setFocus({ x: W / 2 - s * (r.left + r.width / 2), y: H / 2 - s * (r.top + r.height / 2) - 20, scale: s })
+        const s = mode === 'top' ? Math.min(scale, (0.92 * W) / r.width) : Math.min(scale, (0.92 * W) / r.width, (0.86 * H) / r.height)
+        if (s <= 1) return setFocus(null) // the region already fits: zooming out would only add margins
+        let x = W / 2 - s * (r.left + r.width / 2)
+        let y = mode === 'top' ? 40 - s * r.top : H / 2 - s * (r.top + r.height / 2) - 20
+        // never pan past the dashboard's left, right or top edge (no empty margins on camera)
+        x = Math.min(0, Math.max(W - s * app.offsetWidth, x))
+        y = Math.min(0, y)
+        setFocus({ x, y, scale: s })
       },
       state: () => stateRef.current,
       card: (name) => setCard(name),
@@ -258,13 +268,21 @@ export default function App() {
         </AnimatePresence>
       </div>
 
-      <AnimatePresence>
-        {caption && (
-          <motion.div key={caption} className="caption" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 8 }}>
-            {caption}
-          </motion.div>
-        )}
-      </AnimatePresence>
+      <div className="caption-dock">
+        <AnimatePresence mode="wait">
+          {caption && (
+            <motion.div
+              key={caption}
+              className="caption"
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0, transition: { duration: 0.18 } }}
+              exit={{ opacity: 0, transition: { duration: 0.1 } }}
+            >
+              {caption}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
 
       <AnimatePresence>{card && <StoryCard key={card} name={card} />}</AnimatePresence>
 

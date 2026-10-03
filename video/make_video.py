@@ -55,19 +55,31 @@ def api(path: str, body: Any = None) -> Any:
 # ---- audio assets -------------------------------------------------------------------
 
 
+CAPTION_MAX = 100  # characters; longer sentences are split at the comma nearest their middle
+
+
 class Voice:
     def __init__(self, silent: bool) -> None:
         self.silent = silent
         AUDIO.mkdir(parents=True, exist_ok=True)
         self.clips: dict[str, tuple[Path | None, float]] = {}
+        self.words: dict[str, list[dict[str, Any]]] = {}  # per line: spoken words with start/end seconds
 
     def prepare(self) -> None:
         for key, (voice, text) in LINES.items():
+            tokens = text.split()
             if self.silent:
-                self.clips[key] = (None, max(1.6, len(text.split()) / 2.6))
+                length = max(1.6, len(tokens) / 2.6)
+                self.clips[key] = (None, length)
+                self.words[key] = [{"text": t, "start": length * i / len(tokens), "end": length * (i + 1) / len(tokens)}
+                                   for i, t in enumerate(tokens)]
             else:
                 path = eleven.speak(text, voice, AUDIO)
                 self.clips[key] = (path, eleven.duration(path))
+                words = eleven.align(path, text)
+                if len(words) != len(tokens):
+                    raise RuntimeError(f"alignment for {key!r} has {len(words)} words, text has {len(tokens)}")
+                self.words[key] = words
             print(f"  line {key:<13} {self.clips[key][1]:5.1f}s")
         if not self.silent:
             for key, (prompt, seconds) in SFX.items():
@@ -87,6 +99,7 @@ class Director:
         self.t0 = 0.0
         self.cues: list[tuple[float, str]] = []  # (seconds since recording start, clip key)
         self.marks: list[tuple[float, str]] = []
+        self.started: dict[str, float] = {}  # line key -> when it started playing
 
     def now(self) -> float:
         return time.monotonic() - self.t0
@@ -113,21 +126,34 @@ class Director:
         self.mark(f"TIMEOUT waiting for {label}")
         return False
 
+    async def sleep_until(self, t: float) -> None:
+        await asyncio.sleep(max(0.0, t - self.now()))
+
     async def say(self, key: str, *, caption: bool = True) -> None:
-        """Play a narration line now: cue its audio, show captions sentence by sentence."""
-        _, text = LINES[key]
+        """Play a narration line now; each caption appears as its first word is spoken."""
         _, length = self.voice.clips[key]
-        self.cues.append((self.now(), key))
+        start = self.now()
+        self.started[key] = start
+        self.cues.append((start, key))
         self.mark(f"say {key} ({length:.1f}s)")
-        sentences = [s for s in re.split(r"(?<=[.!?:])\s+", text) if s]
-        total = sum(len(s) for s in sentences)
-        for sentence in sentences:
-            share = length * len(sentence) / total
-            if caption:
-                await self.js(f"window.__capy.caption({json.dumps(sentence)})")
-            await asyncio.sleep(share)
-        await self.js("window.__capy.caption(null)")
+        if caption:
+            for offset, chunk in captions(self.voice.words[key]):
+                await self.sleep_until(start + offset)
+                await self.js(f"window.__capy.caption({json.dumps(chunk)})")
+        await self.sleep_until(start + length)
+        if caption:
+            await self.js("window.__capy.caption(null)")
         await asyncio.sleep(0.35)
+
+    async def until(self, key: str, word: str, lead: float = 0.0) -> None:
+        """Wait for the moment a word of a line that is playing is spoken (minus a lead)."""
+        while key not in self.started:
+            await asyncio.sleep(0.05)
+        words = self.voice.words[key]
+        hit = next((w for w in words if re.sub(r"\W", "", w["text"]) == word), None)
+        if hit is None:
+            raise KeyError(f"{word!r} is not in line {key!r}")
+        await self.sleep_until(self.started[key] + hit["start"] - lead)
 
     def sfx(self, key: str) -> None:
         if f"sfx:{key}" in self.voice.clips:
@@ -175,6 +201,30 @@ class Director:
             await asyncio.sleep(0.2)
 
 
+def captions(words: list[dict[str, Any]]) -> list[tuple[float, str]]:
+    """Group a line's timed words into caption chunks: sentences, long ones split at a comma."""
+    sentences: list[list[dict[str, Any]]] = [[]]
+    for w in words:
+        sentences[-1].append(w)
+        if w["text"].endswith((".", "!", "?", ":")):
+            sentences.append([])
+    chunks: list[list[dict[str, Any]]] = []
+    for sentence in filter(None, sentences):
+        pending = [sentence]
+        while pending:
+            part = pending.pop(0)
+            text = " ".join(w["text"] for w in part)
+            commas = [i for i, w in enumerate(part[:-1]) if w["text"].endswith(",")]
+            if len(text) <= CAPTION_MAX or not commas:
+                chunks.append(part)
+                continue
+            middle = len(text) / 2
+            cut = min(commas, key=lambda i: abs(len(" ".join(w["text"] for w in part[: i + 1])) - middle))
+            pending[:0] = [part[: cut + 1], part[cut + 1 :]]
+    # show each chunk a beat before its first word; the first one as the line starts
+    return [(0.0 if i == 0 else max(0.0, c[0]["start"] - 0.12), " ".join(w["text"] for w in c)) for i, c in enumerate(chunks)]
+
+
 def zoo_steps(s: dict[str, Any], case_id: str) -> list[dict[str, Any]]:
     return s["zoo"].get(case_id, [])
 
@@ -212,13 +262,13 @@ async def storyboard(d: Director, brain: str) -> None:
     await d.say("problem")
     d.sfx("whoosh")
     await d.card(None)
-    await asyncio.sleep(1.0)
+    await asyncio.sleep(0.9)
 
-    await d.focus("inbox", 1.55, "top")
-    await asyncio.sleep(0.8)
+    await d.focus("brand,inbox", 1.25, "top")
+    await asyncio.sleep(0.6)
     await d.say("inbox")
     await d.focus(None)
-    await asyncio.sleep(0.8)
+    await asyncio.sleep(0.6)
 
     # start the sweep with a visible click
     await d.select("DSP-1042")
@@ -227,13 +277,15 @@ async def storyboard(d: Director, brain: str) -> None:
     await d.click(".run-btn")
     await d.say("capy_go", caption=False)
 
-    await asyncio.sleep(1.2)
+    # whole dashboard while all five sessions spin up, then into the agent trail
+    narration = asyncio.create_task(d.say("zoowork"))
+    await d.until("zoowork", "reads", lead=0.9)
     await d.focus("zoo", 1.9)
-    await d.say("zoowork")
+    await narration
     await d.focus(None)
 
     await d.wait_for("ShipCo reply", lambda s: any(m["sender"] == "shipco" for m in band_items(s, "DSP-1042")), 180)
-    await asyncio.sleep(0.6)
+    await asyncio.sleep(0.5)
     await d.focus("band", 1.9)
     await d.say("band")
     await d.focus(None)
@@ -241,25 +293,23 @@ async def storyboard(d: Director, brain: str) -> None:
     # the merchant's lab report: the live agent asks early, so answer early
     if await d.wait_for("question", lambda s: any(a["status"] == "open" for a in s["cases"]["DSP-1045"]["attention"]), 90):
         await d.select("DSP-1045")
-        await asyncio.sleep(1.0)
+        await asyncio.sleep(0.8)
         await d.focus("band", 1.9)
         narration = asyncio.create_task(d.say("question"))
-        await asyncio.sleep(5.0)
+        await d.until("question", "I", lead=1.3)  # the cursor needs ~1.2s to travel and press
         await d.click(".attention .quick button.primary")
         await narration
-        await asyncio.sleep(1.2)
+        await asyncio.sleep(0.8)
         await d.focus(None)
         await d.select("DSP-1042")
-        await asyncio.sleep(0.8)
+        await asyncio.sleep(0.6)
 
     await d.wait_for("pins", lambda s: len(s["cases"]["DSP-1042"]["pins"]) >= 3, 180)
-    await asyncio.sleep(0.6)
-    await d.focus("casefile", 1.15)
+    await asyncio.sleep(0.5)
     await d.say("board")
-    await d.focus(None)
 
     await d.wait_for("packet", lambda s: s["cases"]["DSP-1042"]["packet"] is not None, 300)
-    await asyncio.sleep(0.6)
+    await asyncio.sleep(0.5)
     await d.focus("zoo", 1.9)
     await d.say("vault")
     await d.focus(None)
@@ -274,16 +324,17 @@ async def storyboard(d: Director, brain: str) -> None:
         await d.click(".modal-actions .go")
         await asyncio.sleep(0.4)
         await d.js("window.__capy.modals(false)")
-        await asyncio.sleep(3.0)
+        await d.wait_for("DSP-1044 accepted", lambda s: s["cases"]["DSP-1044"]["status"] == "accepted", 30)
+        await asyncio.sleep(1.6)  # let the ACCEPTED stamp land
 
-    # approve the delivery-photo case on camera
+    # approve the delivery-photo case on camera, then wait for the issuer
     if await d.wait_for("approval DSP-1042", lambda s: any(a["case_id"] == "DSP-1042" for a in s["approvals"]), 300):
         await d.select("DSP-1042")
         await d.js("window.__capy.showApproval('DSP-1042')")
         await d.js("window.__capy.modals(true)")
         await asyncio.sleep(1.0)
         narration = asyncio.create_task(d.say("approval"))
-        await asyncio.sleep(4.2)
+        await d.until("approval", "then", lead=1.2)
         photo_page = await d.js(
             """(() => { const c = window.__capy.state().cases['DSP-1042'];
                  const ids = c.packet ? c.packet.exhibits : [];
@@ -295,21 +346,28 @@ async def storyboard(d: Director, brain: str) -> None:
             await d.click(f".modal-left .thumbs button:nth-child({photo_page})")
         await narration
         await d.click(".modal-actions .go")
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.4)
         await d.js("window.__capy.modals(false)")
+        await d.say("submitted")
         await d.wait_for("DSP-1042 won", lambda s: s["cases"]["DSP-1042"]["status"] == "won", 90)
-        await asyncio.sleep(0.5)
+        await asyncio.sleep(0.6)
         await d.say("capy_won", caption=False)
-        await asyncio.sleep(2.2)
+        await asyncio.sleep(1.2)
 
-    results = asyncio.create_task(d.say("results"))
+    # the rest of the packets, then a montage of rulings with the follow camera
+    narration = asyncio.create_task(d.say("rest"))
     await approve_remaining(d)
-    await d.focus("kpis", 1.7)
-    await results
-    await d.wait_for("all decided", lambda s: all(c["status"] in ("won", "lost", "accepted") for c in s["cases"].values()), 60)
-    await asyncio.sleep(2.0)
-    await d.focus(None)
+    await narration
+    await d.js("window.__capy.follow(true)")
+    await d.wait_for("all decided", lambda s: all(c["status"] in ("won", "lost", "accepted") for c in s["cases"].values()), 90)
+    await asyncio.sleep(2.4)  # the last stamp and its confetti
+    await d.js("window.__capy.follow(false)")
+    await d.focus("brand,kpis", 1.7, "top")
     await asyncio.sleep(0.8)
+    await d.say("results")
+    await asyncio.sleep(0.4)
+    await d.focus(None)
+    await asyncio.sleep(0.6)
 
     d.sfx("whoosh")
     await d.card("architecture")
@@ -368,7 +426,8 @@ def mix(director: Director, voice: Voice, raw: Path, out: Path, silent: bool) ->
     n = 1
     if not silent:
         try:
-            bed = eleven.music(MUSIC, min(length + 2, 300), AUDIO)
+            # a fixed-length bed (trimmed and faded) so re-takes reuse the cached track
+            bed = eleven.music(MUSIC, 240 if length <= 238 else min(length + 2, 300), AUDIO)
             inputs += ["-stream_loop", "-1", "-i", str(bed)]
             filters.append(f"[{n}:a]atrim=0:{length:.2f},volume=0.16,afade=t=in:d=1.5,afade=t=out:st={max(length - 3, 0):.2f}:d=3[music]")
             labels.append("[music]")

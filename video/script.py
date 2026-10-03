@@ -1,7 +1,7 @@
 """Narration for the demo video. 'capy' lines are Inspector Capy's own voice."""
 
 LINES = {
-    "title": ("narrator", "Meet Chargeback Capy: an AI detective that wins back the money online shops lose to chargebacks."),
+    "title": ("narrator", "Meet Chargeback Capy, an AI detective that wins back the money online shops lose to chargebacks."),
     "problem": (
         "narrator",
         "A chargeback costs the sale, the goods and a fee. The evidence is scattered, the deadlines are short, "
@@ -44,7 +44,12 @@ LINES = {
         "And nothing moves money without me. ZooWork's approval gate pauses the agent until I review the packet: "
         "the argument up front, then the original evidence.",
     ),
+    "submitted": (
+        "narrator",
+        "Approved. Capy submits the packet to the card issuer, simulated here so it rules in seconds instead of weeks.",
+    ),
     "capy_won": ("capy", "Case closed."),
+    "rest": ("narrator", "The other packets get the same review: one look, one click each."),
     "results": (
         "narrator",
         "The issuer rules for us. Four disputes won, one honest refund, and eighteen hundred and forty-two dollars "

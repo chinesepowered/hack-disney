@@ -38,7 +38,7 @@ export function Header({ stats, modes, sweep }: { stats: Stats | null; modes: Mo
   const winRate = stats?.win_rate == null ? null : stats.win_rate * 100
   return (
     <header className="header">
-      <div className="brand">
+      <div className="brand" data-focus="brand">
         <div className="brand-badge">
           <span className="steam" />
           <span className="steam" />

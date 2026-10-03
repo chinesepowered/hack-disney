@@ -51,7 +51,7 @@ export function Header({ stats, modes, sweep }: { stats: Stats | null; modes: Mo
         </div>
       </div>
 
-      <div className="kpis">
+      <div className="kpis" data-focus="kpis">
         <Kpi label="At risk" value={stats?.at_risk ?? null} tone="risk" />
         <Kpi label="Recovered" value={stats?.recovered ?? null} tone="good" />
         <Kpi label="Win rate" value={winRate} format={(n) => `${Math.round(n)}%`} />

@@ -16,3 +16,4 @@ node_modules/
 frontend/dist/
 video/out/
 *.tsbuildinfo
+video/out/

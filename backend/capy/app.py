@@ -164,6 +164,15 @@ class CapyApp:
                 self.bus.publish("log", level="error", text=f"{case_id}: ZooWork error {err}. Scripted inspector took over.")
         await self.sim.investigate(case_id)
 
+    def reset(self) -> dict[str, Any]:
+        """Fresh inbox with no sweep (used before recording a demo)."""
+        if self.running:
+            raise RuntimeError("A sweep is running")
+        self.build(use_band=self.band is not None)
+        self.sweep = {"status": "idle"}
+        self.bus.publish("reset", **self.snapshot())
+        return self.snapshot()
+
     # ---- merchant actions -------------------------------------------------------------
 
     def resolve_approval(self, approval_id: str, decision: str) -> dict[str, Any]:

@@ -2,6 +2,7 @@ import confetti from 'canvas-confetti'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { ApprovalModal } from './components/Approval'
+import { StoryCard } from './components/Cards'
 import { BandRoom } from './components/BandRoom'
 import { CaseFileView } from './components/CaseFile'
 import { Header } from './components/Header'
@@ -19,8 +20,12 @@ declare global {
       select: (id: string) => void
       follow: (on: boolean) => void
       caption: (text: string | null) => void
-      focus: (target: string | null, scale?: number) => void
+      focus: (target: string | null, scale?: number, mode?: 'fit' | 'top') => void
       state: () => State
+      card: (name: string | null) => void
+      click: (selector: string) => Promise<boolean>
+      showApproval: (caseId: string | null) => void
+      modals: (on: boolean) => void
     }
   }
 }
@@ -72,8 +77,12 @@ export default function App() {
   const [selected, setSelected] = useState<string | null>(null)
   const [follow, setFollow] = useState(true)
   const [caption, setCaption] = useState<string | null>(null)
-  const [focus, setFocus] = useState<{ origin: string; scale: number } | null>(null)
+  const [focus, setFocus] = useState<{ x: number; y: number; scale: number } | null>(null)
   const [snoozed, setSnoozed] = useState<string[]>([])
+  const [card, setCard] = useState<string | null>(null)
+  const [cursor, setCursor] = useState({ x: 960, y: 1180, clicking: false, visible: false })
+  const [forced, setForced] = useState<string | null>(null)
+  const [modalsOn, setModalsOn] = useState(true)
   const lastSwitch = useRef(0)
   const cases = useMemo(() => state.order.map((id) => state.cases[id]).filter(Boolean), [state.order, state.cases])
 
@@ -118,30 +127,67 @@ export default function App() {
       },
       follow: (on) => setFollow(on),
       caption: (text) => setCaption(text),
-      focus: (target, scale = 1.32) => {
+      focus: (target, scale = 1.6, mode = 'fit') => {
         if (!target) return setFocus(null)
-        const el = document.querySelector(`[data-focus="${target}"]`)
+        const el = document.querySelector(`[data-focus="${target}"]`) as HTMLElement | null
         if (!el) return
+        // measure without the current zoom, then center the element and fit it on screen
+        const app = document.querySelector('.app') as HTMLElement
+        const prev = app.style.transform
+        app.style.transition = 'none'
+        app.style.transform = 'none'
         const r = el.getBoundingClientRect()
-        const ox = ((r.left + r.width / 2) / window.innerWidth) * 100
-        const oy = ((r.top + r.height / 2) / window.innerHeight) * 100
-        setFocus({ origin: `${ox}% ${oy}%`, scale })
+        app.style.transform = prev
+        void app.offsetWidth
+        app.style.transition = ''
+        const W = window.innerWidth
+        const H = window.innerHeight
+        if (mode === 'top') {
+          const s = Math.min(scale, (0.92 * W) / r.width)
+          setFocus({ x: W / 2 - s * (r.left + r.width / 2), y: 40 - s * r.top, scale: s })
+          return
+        }
+        const s = Math.min(scale, (0.92 * W) / r.width, (0.86 * H) / r.height)
+        setFocus({ x: W / 2 - s * (r.left + r.width / 2), y: H / 2 - s * (r.top + r.height / 2) - 20, scale: s })
       },
       state: () => stateRef.current,
+      card: (name) => setCard(name),
+      showApproval: (caseId) => setForced(caseId),
+      modals: (on) => setModalsOn(on),
+      click: async (selector) => {
+        const el = document.querySelector(selector) as HTMLElement | null
+        if (!el) return false
+        const r = el.getBoundingClientRect()
+        setCursor((c) => ({ ...c, visible: true }))
+        await new Promise((ok) => setTimeout(ok, 30))
+        setCursor({ x: r.left + r.width / 2, y: r.top + r.height / 2, clicking: false, visible: true })
+        await new Promise((ok) => setTimeout(ok, 950))
+        setCursor((c) => ({ ...c, clicking: true }))
+        await new Promise((ok) => setTimeout(ok, 200))
+        el.click()
+        await new Promise((ok) => setTimeout(ok, 350))
+        setCursor((c) => ({ ...c, clicking: false }))
+        setTimeout(() => setCursor((c) => ({ ...c, visible: false })), 1400)
+        return true
+      },
     }
     if (DIRECTOR) document.body.classList.add('director-cursor-hidden')
   }, [])
 
   const current = selected ? state.cases[selected] ?? null : null
-  const approval = state.approvals.find((a) => !snoozed.includes(a.id))
-  const waiting = state.approvals.length
+  const approval = !modalsOn
+    ? undefined
+    : forced
+      ? state.approvals.find((a) => a.case_id === forced)
+      : state.approvals.find((a) => !snoozed.includes(a.id))
+  const waiting = DIRECTOR ? 0 : state.approvals.length
   const toasts = state.logs.filter((l) => l.level !== 'info' && Date.now() / 1000 - l.ts < 9)
 
   return (
     <>
       <div
         className="app"
-        style={focus ? { transform: `scale(${focus.scale})`, ['--focus-origin' as string]: focus.origin } : undefined}
+        style={focus ? { transform: `translate(${focus.x}px, ${focus.y}px) scale(${focus.scale})`, transformOrigin: '0 0' } : { transformOrigin: '0 0' }}
       >
         <Header stats={state.stats} modes={state.modes} sweep={state.sweep} />
         <main className="main">
@@ -219,6 +265,20 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <AnimatePresence>{card && <StoryCard key={card} name={card} />}</AnimatePresence>
+
+      {DIRECTOR && (
+        <div
+          className={`fake-cursor ${cursor.clicking ? 'clicking' : ''}`}
+          style={{ transform: `translate(${cursor.x}px, ${cursor.y}px)`, opacity: cursor.visible ? 1 : 0 }}
+        >
+          <svg width="34" height="40" viewBox="0 0 34 40">
+            <path d="M3 2 L3 32 L11 25 L17 38 L23 35 L17 22 L28 22 Z" fill="#2b2118" stroke="#fff" strokeWidth="2.5" strokeLinejoin="round" />
+          </svg>
+          <span className="ripple" />
+        </div>
+      )}
 
       {!state.connected && <div className="disconnected">Reconnecting to the Capy backend…</div>}
     </>

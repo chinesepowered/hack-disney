@@ -24,6 +24,9 @@ from .zoo import ZooInspector, ZooRunFailed
 log = logging.getLogger("capy.app")
 
 STAGGER = 1.6  # seconds between case starts, so the inbox lights up one by one
+# The scripted inspector starts cases in story order: the honest refund first, then the
+# delivery-photo case reaches its approval before the quicker ones.
+SCRIPTED_START = {"DSP-1042": 0.0, "DSP-1044": 1.6, "DSP-1043": 3.2, "DSP-1045": 4.8, "DSP-1046": 12.0}
 
 
 class CapyApp:
@@ -134,7 +137,8 @@ class CapyApp:
     async def _run_sweep(self, case_ids: list[str], brain: str) -> None:
         try:
             await asyncio.gather(*(self.rooms.open(c) for c in case_ids))
-            runs = [asyncio.create_task(self._investigate(c, brain, i * STAGGER)) for i, c in enumerate(case_ids)]
+            delay = (lambda i, c: SCRIPTED_START.get(c, i * STAGGER)) if brain == "scripted" else (lambda i, c: i * STAGGER)
+            runs = [asyncio.create_task(self._investigate(c, brain, delay(i, c))) for i, c in enumerate(case_ids)]
             await asyncio.gather(*runs, return_exceptions=True)
             # let pending issuer rulings land before closing the recording
             for _ in range(int(self.settings.issuer_delay * 4) + 8):

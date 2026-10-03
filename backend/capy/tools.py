@@ -317,10 +317,12 @@ class ToolRouter:
         exhibits = []
         if history:
             key = "ce3_history" if len(qualifying) >= 2 else "customer_history"
+            labels = {"ip": "IP address", "device": "device", "shipping_address": "shipping address", "account_id": "account"}
+            shared = [labels[m] for m in ("device", "ip", "shipping_address", "account_id")
+                      if any(m in q["matches"] for q in qualifying)]
             summary = (
-                f"{len(qualifying)} prior undisputed orders, {', '.join(str(q['age_days']) for q in qualifying)} days "
-                "before the dispute, share " + " and ".join(sorted({m for q in qualifying for m in q['matches']}))
-                + " with the disputed purchase (Visa CE 3.0)."
+                f"{len(qualifying)} prior undisputed orders ({' and '.join(str(q['age_days']) for q in sorted(qualifying, key=lambda q: q['age_days']))} "
+                f"days before the dispute) share the {', '.join(shared[:-1])} and {shared[-1]} with this purchase (Visa CE 3.0)."
                 if qualifying else f"{len(history)} earlier orders; none meet Visa CE 3.0."
             )
             exhibits.append(self.vault.add(
@@ -479,11 +481,18 @@ class ToolRouter:
         packet = (prepared or {}).get("packet") or case.packet or {}
         claims = (prepared or {}).get("claims") or case.claims
         exhibits = [self.vault.get(i).public() for i in packet.get("exhibits", []) if self.vault.get(i)]  # type: ignore[union-attr]
-        checks = [
-            {"label": "Every finding cites vault evidence", "ok": bool(prepared and prepared.get("ok")) or tool == "accept_dispute"},
-            {"label": "Original exhibits attached with SHA-256", "ok": bool(packet.get("exhibits")) or tool == "accept_dispute"},
-            {"label": f"Before the deadline ({_d(case.respond_by)})", "ok": True},
-        ]
+        if tool == "accept_dispute":
+            checks = [
+                {"label": "Records show the cardholder is right", "ok": True},
+                {"label": "Accepting now avoids a losing fight and its fees", "ok": True},
+                {"label": f"Refund issued before the deadline ({_d(case.respond_by)})", "ok": True},
+            ]
+        else:
+            checks = [
+                {"label": "Every finding cites vault evidence", "ok": bool(prepared and prepared.get("ok"))},
+                {"label": f"{len(packet.get('exhibits', []))} original exhibits attached with SHA-256", "ok": bool(packet.get("exhibits"))},
+                {"label": f"Before the deadline ({_d(case.respond_by)})", "ok": True},
+            ]
         return {"amount": case.amount, "case": case.public(), "summary": args.get("summary") or args.get("rationale", ""),
                 "claims": claims, "packet": packet if tool == "submit_evidence" else None,
                 "exhibits": exhibits, "checks": checks, "win_probability": case.win_probability}

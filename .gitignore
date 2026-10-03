@@ -15,3 +15,4 @@ backend/artifacts/
 node_modules/
 frontend/dist/
 video/out/
+*.tsbuildinfo

@@ -1,17 +1,40 @@
 # 🔍 Chargeback Capy
 
-- **What it does:** Chargeback Capy is an AI detective that wins back the money online merchants lose to chargebacks.
-- **The problem:** every chargeback costs a shop the sale, the goods and a fee, and the evidence to fight it is scattered across systems and companies with deadlines in days, so most small merchants never respond.
-- **Our solution:** Inspector Capy, a ZooWork managed agent, investigates every dispute in parallel, gathers proof from partner agents and the merchant in Band case rooms, writes an evidence packet where every claim must cite a fingerprinted exhibit, and submits only after the merchant approves.
-- **Results:** in a live run it handled 5 disputes in about 90 seconds: 4 won ($1,842 recovered) and 1 honest refund where the shop was at fault. Merchants pay 20% of recovered dollars, nothing when Capy loses.
+**Chargeback Capy is an AI agent that fights card chargebacks for online merchants and wins back money they would otherwise lose.** Inspector Capy, a capybara detective, investigates every open dispute, gathers proof from the shop's own systems and from partner companies, and files an evidence packet once the merchant approves. Merchants pay only a share of what it recovers.
 
-### ▶ [Watch the 3-minute demo on YouTube](https://www.youtube.com/watch?v=vCJSlZiHoYU)
+[![Watch the Chargeback Capy demo on YouTube](https://img.youtube.com/vi/hy5D2LYdi30/maxresdefault.jpg)](https://www.youtube.com/watch?v=hy5D2LYdi30)
 
-[![Chargeback Capy dashboard during a live run. Click to watch the demo video.](docs/dashboard.jpg)](https://www.youtube.com/watch?v=vCJSlZiHoYU)
+**▶ [Watch the 3-minute demo on YouTube](https://www.youtube.com/watch?v=hy5D2LYdi30)**
 
-**Try it:** [`offline.html`](offline.html) (replay of a live run; download and open in any browser, no network needed) ·
-[`slide.html`](slide.html) (4-slide pitch) · [`docs/SETUP.md`](docs/SETUP.md) (run it live) ·
-[`docs/chargeback-capy-demo.mp4`](docs/chargeback-capy-demo.mp4) (offline copy of the video)
+**Try it:** [`offline.html`](offline.html) (download and open in any browser: replays a live run, no network needed) ·
+[`slide.html`](slide.html) (4-slide pitch) · [`docs/SETUP.md`](docs/SETUP.md) (run it live)
+
+## The problem
+
+- **Every chargeback costs real money.** The merchant loses the sale, the goods and a dispute fee, often to "friendly fraud": the customer received the order, then told their bank it never arrived.
+- **Fighting back is slow, manual work.** The evidence is spread across orders, payments, support inboxes and carrier systems, some of it at other companies, and every card-network reason code demands different proof on a tight deadline.
+- **So small merchants rarely fight.** Without a disputes team, most chargebacks go unanswered and the money is simply gone.
+
+## Our solution
+
+Inspector Capy is a ZooWork managed agent that works every open dispute in parallel:
+
+- **Investigates like a specialist.** It reads the order, payment checks, customer history, support emails and billing records through the merchant's own tools, and matches them to what each Visa reason code requires, such as Compelling Evidence 3.0 when a cardholder says "I didn't make this purchase".
+- **Gathers proof across companies.** Each dispute gets a Band case room, where Capy asks the ShipCo warehouse's agent for delivery scans and a GPS-stamped photo, and asks the merchant when only they have the answer, like a lab report.
+- **No source, no claim.** Capy writes its argument as a PDF in its sandbox. Every finding must cite a fingerprinted exhibit, and the vault attaches the untouched originals with SHA-256 hashes.
+- **The merchant stays in control.** Nothing that moves money happens without the merchant's approval, and Capy recommends a refund when the shop is in the wrong.
+
+![Chargeback Capy dashboard during a live run](docs/dashboard.jpg)
+
+## Results
+
+From a live run with the ZooWork agent and real Band rooms (Oct 3, 2026):
+
+- **5 disputes** investigated in parallel in **about 90 seconds**.
+- **4 fought and won** against the simulated issuer, recovering **$1,842**.
+- **1 honest refund:** the customer had cancelled before renewal and a billing sync bug charged them anyway, so Capy recommended accepting the dispute.
+- **Every finding** in every packet cited a fingerprinted exhibit.
+- **Pay on win:** Capy's fee is 20% of recovered dollars ($368 in this run) and nothing when it loses.
 
 ## Sponsor summary
 

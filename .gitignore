@@ -1,0 +1,15 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Secrets
+.env
+
+# Generated
+backend/runs/
+backend/artifacts/
+node_modules/
+frontend/dist/
+video/out/

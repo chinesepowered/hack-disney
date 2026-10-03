@@ -1,0 +1,28 @@
+[project]
+name = "haggle-springs"
+version = "0.1.0"
+description = "Capybara buyer agents that haggle with seller agents on Band and check out through ZooWork"
+requires-python = ">=3.11"
+dependencies = [
+    "anthropic>=1.11.0",
+    "band-sdk>=4.0.0",
+    "fastapi>=0.142.2",
+    "httpx>=0.28.1",
+    "python-dotenv>=1.2.4",
+    "reportlab>=5.0.1",
+    "uvicorn[standard]>=0.54.0",
+    "zoowork>=0.5.2",
+]
+
+[tool.uv]
+package = false
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pytest-asyncio>=1.4.0",
+]

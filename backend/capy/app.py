@@ -47,6 +47,7 @@ class CapyApp:
         self.processor = Processor(self.world, self.vault, self.cases, self.bus, self.settings.issuer_delay)
         self.rooms = Rooms(self.world, self.vault, self.cases, self.bus,
                            self.band if use_band else None, self.settings.pace)
+        self.processor.on_decision = self.rooms.announce_decision
         self.approvals = Approvals(self.bus, self.cases)
         self.router = ToolRouter(self.world, self.vault, self.cases, self.processor, self.rooms,
                                  self.approvals, self.bus)

@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import asyncio
 import os
+import tempfile
 
-os.environ.update({"CAPY_ZOOWORK": "off", "CAPY_BAND": "off", "CAPY_PACE": "0", "CAPY_ISSUER_DELAY": "0.05"})
+os.environ.update({"CAPY_ZOOWORK": "off", "CAPY_BAND": "off", "CAPY_PACE": "0", "CAPY_ISSUER_DELAY": "0.05",
+                   "CAPY_DATA_DIR": tempfile.mkdtemp(prefix="capy-test-")})
 
 from capy.app import CapyApp  # noqa: E402
 from capy.config import load_settings  # noqa: E402

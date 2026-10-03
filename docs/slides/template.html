@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Chargeback Capy · pitch</title>
+<link rel="icon" href="data:image/svg+xml;base64,{{CAPY_SVG_B64}}" />
+<style>
+@font-face { font-family: 'Fredoka'; font-weight: 600; src: url(data:font/woff2;base64,{{FREDOKA_600}}) format('woff2'); }
+@font-face { font-family: 'Fredoka'; font-weight: 700; src: url(data:font/woff2;base64,{{FREDOKA_700}}) format('woff2'); }
+@font-face { font-family: 'Nunito'; font-weight: 600; src: url(data:font/woff2;base64,{{NUNITO_600}}) format('woff2'); }
+@font-face { font-family: 'Nunito'; font-weight: 700; src: url(data:font/woff2;base64,{{NUNITO_700}}) format('woff2'); }
+@font-face { font-family: 'Nunito'; font-weight: 800; src: url(data:font/woff2;base64,{{NUNITO_800}}) format('woff2'); }
+@font-face { font-family: 'Caveat'; font-weight: 600; src: url(data:font/woff2;base64,{{CAVEAT_600}}) format('woff2'); }
+
+:root {
+  --ink: #2b2118; --muted: #6a5643; --brown: #5b3a22; --line: #ecdfca;
+  --teal: #2b8c83; --teal-soft: #e1f3f0; --zoo: #5a55d6; --zoo-soft: #ecebff;
+  --eleven: #2b2118; --yuzu: #ffc531; --green: #2f9958; --red: #c0473f;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #1d1611; overflow: hidden; }
+body { font-family: 'Nunito', system-ui, sans-serif; color: var(--ink); }
+
+.viewport { position: fixed; inset: 0; }
+.stage { width: 1920px; height: 1080px; position: absolute; left: 50%; top: 50%; transform-origin: center; transform: translate(-50%, -50%); }
+.slide {
+  position: absolute; inset: 0; padding: 96px 120px; overflow: hidden;
+  background:
+    radial-gradient(900px 520px at 12% 112%, rgba(126,200,192,.45), transparent 70%),
+    radial-gradient(760px 420px at 95% -12%, rgba(255,197,49,.32), transparent 70%),
+    linear-gradient(160deg, #fffaf0, #f3e5ce);
+  opacity: 0; transform: translateX(40px); transition: opacity .55s ease, transform .55s ease; pointer-events: none;
+}
+.slide.on { opacity: 1; transform: none; pointer-events: auto; }
+h1, h2, h3 { font-family: 'Fredoka', 'Nunito', sans-serif; margin: 0; color: var(--brown); }
+h2 { font-weight: 700; font-size: 82px; line-height: 1; letter-spacing: -.5px; }
+.kicker { font-family: 'Caveat', cursive; font-weight: 600; font-size: 50px; color: var(--teal); }
+.sub { font-size: 34px; font-weight: 700; color: var(--muted); margin-top: 16px; }
+
+/* 1 · title */
+.title { display: flex; align-items: center; gap: 70px; }
+.title h1 { font-weight: 700; font-size: 150px; line-height: .95; letter-spacing: -1.5px; margin: 8px 0 18px; }
+.title p { font-size: 44px; font-weight: 700; color: var(--muted); line-height: 1.22; margin: 0 0 40px; max-width: 900px; }
+.hero { flex: none; filter: drop-shadow(0 34px 44px rgba(60,30,10,.35)); }
+.chips { display: flex; gap: 14px; flex-wrap: wrap; }
+.chip { display: inline-flex; align-items: center; gap: 10px; border-radius: 999px; padding: 12px 24px 12px 18px; font-size: 26px; font-weight: 800; }
+.chip i { width: 14px; height: 14px; border-radius: 50%; background: currentColor; }
+.chip.zoo { background: var(--zoo-soft); color: var(--zoo); }
+.chip.band { background: var(--teal-soft); color: #1f6660; }
+.chip.eleven { background: #efe9e1; color: var(--eleven); }
+.foot { position: absolute; left: 120px; bottom: 60px; font-size: 24px; font-weight: 800; color: #a08a72; letter-spacing: .5px; }
+
+/* 2 · problem */
+.grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 34px; margin-top: 64px; }
+.card { background: #fff; border: 2px solid var(--line); border-radius: 32px; padding: 38px 40px 42px; box-shadow: 0 26px 50px -26px rgba(60,30,10,.45); }
+.card .ico { font-size: 64px; line-height: 1; }
+.card h3 { font-weight: 600; font-size: 40px; margin: 18px 0 10px; color: var(--ink); }
+.card p { margin: 0; font-size: 28px; line-height: 1.38; font-weight: 600; color: #5d4c3c; }
+.callout { margin-top: 48px; display: flex; gap: 22px; align-items: center; font-size: 34px; font-weight: 800; color: var(--brown); }
+.callout .pay { background: #fff4d6; border: 2px solid #f1c55a; border-radius: 22px; padding: 18px 28px; color: #7a5200; }
+
+/* 3 · solution */
+.solution { display: grid; grid-template-columns: 1.18fr 1fr; gap: 56px; align-items: start; margin-top: 46px; }
+.shot { border-radius: 22px; overflow: hidden; border: 3px solid #fff; box-shadow: 0 34px 70px -28px rgba(40,20,5,.65); }
+.shot img { display: block; width: 100%; }
+.steps { display: grid; gap: 20px; }
+.step { display: grid; grid-template-columns: 64px 1fr; gap: 18px; align-items: start; }
+.step .n { width: 64px; height: 64px; border-radius: 20px; display: grid; place-items: center; font-size: 34px; background: #fff; border: 2px solid var(--line); }
+.step b { display: block; font-family: 'Fredoka'; font-weight: 600; font-size: 33px; color: var(--ink); }
+.step span { font-size: 25px; font-weight: 600; color: #5d4c3c; line-height: 1.32; }
+.stats { margin-top: 34px; display: flex; gap: 14px; flex-wrap: wrap; }
+.stat { background: #fff; border: 2px solid var(--line); border-radius: 18px; padding: 12px 20px; font-size: 25px; font-weight: 800; color: var(--brown); }
+.stat.win { background: #e3f5e8; border-color: #c5e8cf; color: var(--green); }
+
+/* 4 · why it wins */
+.sponsors { display: grid; grid-template-columns: 1.15fr 1.15fr 0.9fr; gap: 28px; margin-top: 44px; }
+.sp { border-radius: 30px; padding: 28px 34px; background: #fff; border: 3px solid var(--line); box-shadow: 0 26px 50px -26px rgba(60,30,10,.45); }
+.sp h3 { font-weight: 600; font-size: 38px; color: var(--ink); margin-bottom: 14px; }
+.sp ul { margin: 0; padding-left: 28px; font-size: 24px; line-height: 1.45; font-weight: 700; color: #4a3d31; }
+.sp.zoo { border-color: #c9c6f5; background: linear-gradient(180deg,#fff,#f4f3ff); }
+.sp.band { border-color: #b6e0da; background: linear-gradient(180deg,#fff,#effaf8); }
+.bottom { margin-top: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
+.box { background: #fff; border: 2px solid var(--line); border-radius: 26px; padding: 22px 30px; font-size: 25px; font-weight: 700; color: #4a3d31; line-height: 1.45; }
+.box h3 { font-weight: 600; font-size: 32px; color: var(--brown); margin-bottom: 8px; }
+.closing { margin-top: 18px; display: flex; justify-content: flex-end; align-items: center; gap: 16px; font-family: 'Caveat'; font-size: 44px; color: var(--teal); }
+
+/* chrome */
+.nav { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); display: flex; gap: 10px; z-index: 5; }
+.nav button { width: 14px; height: 14px; border-radius: 50%; border: 0; background: rgba(255,255,255,.35); cursor: pointer; padding: 0; }
+.nav button.on { background: #ffc531; }
+.count { position: fixed; right: 22px; bottom: 12px; color: rgba(255,255,255,.5); font: 700 14px 'Nunito', sans-serif; }
+@media print {
+  html, body { overflow: visible; background: #fff; }
+  .viewport { position: static; display: block; }
+  .stage { transform: none !important; width: 1920px; height: auto; }
+  .slide { position: relative; opacity: 1; transform: none; height: 1080px; page-break-after: always; }
+  .nav, .count { display: none; }
+}
+@page { size: 1920px 1080px; margin: 0; }
+</style>
+</head>
+<body>
+<div class="viewport"><div class="stage" id="stage">
+
+  <section class="slide title on">
+    <div class="hero">{{CAPY_SVG_HERO}}</div>
+    <div>
+      <div class="kicker">Capybara Investigations presents</div>
+      <h1>Chargeback Capy</h1>
+      <p>The AI detective that wins back the money merchants lose to chargebacks.</p>
+      <div class="chips">
+        <span class="chip zoo"><i></i>ZooWork managed agents</span>
+        <span class="chip band"><i></i>Band agent rooms</span>
+        <span class="chip eleven"><i></i>ElevenLabs voices</span>
+      </div>
+    </div>
+    <div class="foot">AI COMMERCE HACKATHON · AGENTS FOR MERCHANTS</div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">The problem</div>
+    <h2>Chargebacks quietly drain small shops</h2>
+    <div class="sub">Each one costs the sale, the goods and a dispute fee. Most small merchants never fight back.</div>
+    <div class="grid3">
+      <div class="card"><div class="ico">🧩</div><h3>Scattered evidence</h3><p>Orders, payments, support inboxes, carrier scans and lab reports live in different systems and different companies.</p></div>
+      <div class="card"><div class="ico">⏳</div><h3>Short deadlines</h3><p>Days to respond, and every card-network reason code wants different proof.</p></div>
+      <div class="card"><div class="ico">🎭</div><h3>Friendly fraud</h3><p>The customer got the parka, then told their bank it never arrived.</p></div>
+    </div>
+    <div class="callout"><span>Who pays?</span><span class="pay">Merchants. Capy takes 20% of recovered dollars, nothing when it loses.</span></div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Our solution</div>
+    <h2>Meet Inspector Capy</h2>
+    <div class="solution">
+      <div>
+        <div class="shot"><img src="data:image/jpeg;base64,{{SCREENSHOT_B64}}" alt="Chargeback Capy dashboard" /></div>
+        <div class="stats">
+          <span class="stat">Live run · 5 disputes</span>
+          <span class="stat win">4 won · $1,842 recovered</span>
+          <span class="stat">1 honest refund</span>
+          <span class="stat">≈ 90 seconds</span>
+        </div>
+      </div>
+      <div class="steps">
+        <div class="step"><div class="n">🔍</div><div><b>Investigates every dispute</b><span>A ZooWork managed agent, one session per dispute, all in parallel, reading the shop's records through custom tools.</span></div></div>
+        <div class="step"><div class="n">🤝</div><div><b>Gathers proof across companies</b><span>In Band case rooms, the ShipCo warehouse agent shares the delivery photo and the merchant shares the lab report.</span></div></div>
+        <div class="step"><div class="n">🔐</div><div><b>No source, no claim</b><span>Every finding cites a vault exhibit; originals are attached untouched, sealed with SHA-256.</span></div></div>
+        <div class="step"><div class="n">✋</div><div><b>You approve money moves</b><span>ZooWork's approval gate pauses the agent until the merchant signs off. Capy even recommends refunds when the shop is wrong.</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="slide">
+    <div class="kicker">Why it wins</div>
+    <h2>A real agent merchants would pay for</h2>
+    <div class="sponsors">
+      <div class="sp zoo"><h3>🧠 ZooWork</h3><ul><li>Managed agent runs the investigation loop</li><li>13 custom tools; credentials stay home</li><li>Sandbox writes and publishes the PDF</li><li><code>always_ask</code> approval gate</li><li>Won/lost outcomes label every trajectory</li></ul></div>
+      <div class="sp band"><h3>💬 Band</h3><ul><li>One case room per dispute</li><li>Partner agents across companies, by @mention</li><li>Merchant answers attention items</li><li>Room goals and a full audit trail</li></ul></div>
+      <div class="sp"><h3>🎙 ElevenLabs</h3><ul><li>Narrated demo video</li><li>Inspector Capy's own British voice</li><li>Generated music and sound effects</li></ul></div>
+    </div>
+    <div class="bottom">
+      <div class="box"><h3>💸 Business</h3>Pay-on-win pricing merchants already accept from chargeback services. Every dispute is a measurable win or loss.</div>
+      <div class="box"><h3>🚀 Next</h3>Connect processors' dispute APIs and Shopify; add carriers and 3PLs as Band partners; learn from won/lost trajectories.</div>
+    </div>
+    <div class="closing">{{CAPY_SVG_SMALL}} Fight every dispute worth fighting. Pay only when you win.</div>
+  </section>
+
+</div></div>
+<div class="nav" id="nav"></div>
+<div class="count" id="count"></div>
+<script>
+  const slides = [...document.querySelectorAll('.slide')]
+  const nav = document.getElementById('nav')
+  const count = document.getElementById('count')
+  let i = Math.max(0, Math.min(slides.length - 1, (parseInt(location.hash.slice(1)) || 1) - 1))
+  slides.forEach((_, k) => { const b = document.createElement('button'); b.onclick = () => go(k); nav.appendChild(b) })
+  function go(k) {
+    i = Math.max(0, Math.min(slides.length - 1, k))
+    slides.forEach((s, n) => s.classList.toggle('on', n === i))
+    ;[...nav.children].forEach((b, n) => b.classList.toggle('on', n === i))
+    count.textContent = `${i + 1} / ${slides.length}`
+    history.replaceState(null, '', `#${i + 1}`)
+  }
+  function fit() {
+    const s = Math.min(innerWidth / 1920, innerHeight / 1080)
+    document.getElementById('stage').style.transform = `translate(-50%, -50%) scale(${s})`
+  }
+  addEventListener('resize', fit)
+  addEventListener('keydown', (e) => {
+    if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(e.key)) go(i + 1)
+    if (['ArrowLeft', 'PageUp', 'Backspace'].includes(e.key)) go(i - 1)
+    if (e.key === 'Home') go(0)
+    if (e.key === 'End') go(slides.length - 1)
+  })
+  document.getElementById('stage').addEventListener('click', (e) => go(e.clientX > innerWidth / 3 ? i + 1 : i - 1))
+  fit(); go(i)
+</script>
+</body>
+</html>

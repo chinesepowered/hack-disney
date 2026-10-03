@@ -19,8 +19,10 @@ PACKAGE_ROOT = BACKEND_ROOT / "capy"
 ASSETS = PACKAGE_ROOT / "assets"
 FONTS = ASSETS / "fonts"
 STATE_DIR = BACKEND_ROOT / ".state"  # provisioned agent ids/keys (gitignored)
-RUNS_DIR = BACKEND_ROOT / "runs"  # recorded sweeps for replay (gitignored)
-OUTPUT_DIR = BACKEND_ROOT / "output"  # packets, previews (gitignored)
+# Generated data; tests point CAPY_DATA_DIR at a temp dir so they never clobber demo runs.
+_DATA = Path(os.environ["CAPY_DATA_DIR"]) if os.getenv("CAPY_DATA_DIR") else BACKEND_ROOT
+RUNS_DIR = _DATA / "runs"  # recorded sweeps for replay (gitignored)
+OUTPUT_DIR = _DATA / "output"  # packets, previews (gitignored)
 FRONTEND_DIST = REPO_ROOT / "frontend" / "dist"
 
 load_dotenv(REPO_ROOT / ".env")

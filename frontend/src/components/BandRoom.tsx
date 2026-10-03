@@ -40,8 +40,10 @@ function Message({ m }: { m: BandItem }) {
 
 function AttentionCard({ c, m }: { c: CaseFile; m: BandItem }) {
   const att = c.attention.find((a) => a.id === m.attention_id)
-  const open = att?.status === 'open'
+  const [sent, setSent] = useState(false)
+  const open = att?.status === 'open' && !sent
   const reply = (text: string) => {
+    setSent(true)
     const share = /lab|report|share|attach/i.test(text) ? 'lab_report' : undefined
     api.reply(c.id, text.replace(/^📎\s*/, ''), share)
   }
@@ -66,7 +68,7 @@ function AttentionCard({ c, m }: { c: CaseFile; m: BandItem }) {
               ))}
             </div>
           ) : (
-            <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--green)' }}>✓ Answered: {att?.answer}</div>
+            <div style={{ fontSize: 12, fontWeight: 800, color: 'var(--green)' }}>✓ Answered{att?.answer ? `: ${att.answer}` : '…'}</div>
           )}
         </div>
       </div>

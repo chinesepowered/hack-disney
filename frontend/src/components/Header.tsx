@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import type { Modes, Stats, Sweep } from '../types'
-import { api } from '../store'
+import { api, OFFLINE, REPLAY_INFO } from '../store'
 import { money, useAnimatedNumber } from '../util'
 import { InspectorCapy } from './Capys'
 
@@ -47,7 +47,10 @@ export function Header({ stats, modes, sweep }: { stats: Stats | null; modes: Mo
         </div>
         <div>
           <h1>Chargeback Capy</h1>
-          <p>Capybara Investigations · defending Hot Spring Supply Co.</p>
+          <p>
+            Capybara Investigations · defending Hot Spring Supply Co.
+            {OFFLINE && <span className="replay-tag">▶ offline replay of a live run · {REPLAY_INFO?.recorded_at}</span>}
+          </p>
         </div>
       </div>
 

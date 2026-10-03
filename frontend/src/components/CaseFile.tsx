@@ -227,7 +227,7 @@ export function CaseFileView({ c, sweeping, stamp }: { c: CaseFile | null; sweep
               transition={{ delay: i * 0.06 }}
               style={{ padding: 0 }}
             >
-              <img src={`${src}?v=${c.packet?.sha256.slice(0, 8)}`} alt={`Packet page ${i + 1}`} />
+              <img src={src.startsWith('data:') ? src : `${src}?v=${c.packet?.sha256.slice(0, 8)}`} alt={`Packet page ${i + 1}`} />
             </motion.button>
           ))}
         </div>
